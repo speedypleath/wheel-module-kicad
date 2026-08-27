@@ -10,27 +10,37 @@ only the sensor board that reads the optical encoder and presents it to the cons
 
 ## What the board does
 
-The handwheel drives a 600 P/R optical encoder through a 1:1 GT2 belt. A Raspberry Pi
-Pico reads the A/B/Z quadrature signals locally, converts them into a clean position
+The handwheel drives an E38S6G5-600B-G24N 600 P/R optical encoder through a 1:1 GT2
+belt. A Raspberry Pi Pico reads the A/B quadrature signals locally, converts them into a clean position
 packet, and exposes that packet to the Teensy 4.1 master over I2C. The module behaves
 as a self-contained tactile sense organ rather than a peer processor, matching the
 connector standard's design philosophy.
 
 ## The encoder interface, and why the pull-ups are there
 
-The encoder is a photoelectric incremental type rated **DC 5-24V** with **NPN
-open-collector** outputs. This is the important detail. An open-collector output can
+The encoder is an **E38S6G5-600B-G24N**: photoelectric incremental, 600 P/R, rated
+**DC 5-24V**, with **NPN open-collector** outputs. The `600B` suffix denotes **AB
+two-phase — there is no Z index channel**. Absolute zero is established in firmware,
+not from hardware index.
+
+The open-collector output is the important electrical detail. An open-collector output can
 only pull its line *low*. It never drives a line high. The high level is therefore set
 entirely by whatever rail the line is pulled up to, and is completely independent of
 the encoder's own supply voltage.
 
 That gives the safety property this board relies on:
 
-- `R1`, `R2`, `R3` (4.7k) pull `ENC_A_RAW`, `ENC_B_RAW`, `ENC_Z_RAW` up to **+3V3**.
+- `R1`, `R2` (4.7k) pull `ENC_A_RAW` and `ENC_B_RAW` up to **+3V3**.
 - The Pico therefore sees a 0V to 3.3V swing regardless of whether the encoder is run
   from 5V or 12V.
-- `R4`, `R5`, `R6` (220R) sit in series into the Pico GPIO as fault-current limiters,
+- `R4`, `R5` (220R) sit in series into the Pico GPIO as fault-current limiters,
   protecting the pin if a line is ever accidentally shorted to the encoder supply.
+
+4.7k is comfortable here. With ~2 m of encoder cable at roughly 120 pF/m plus pin and
+stray capacitance (~300 pF total), the RC rise time is about 3 us 10-90%. At a realistic
+handwheel speed of 300 rev/min each channel runs at 3 kHz, a 333 us period, so the rise
+occupies under 1% of it. Pull-up current is 0.7 mA per line, far inside the output
+stage's sink capability.
 
 Without the pull-ups the inputs would float and the quadrature decode would be noise.
 The pull-ups are not optional here.
@@ -59,6 +69,22 @@ and uses the Pico's own regulated 3V3 output as the logic reference for the pull
 
 I2C bus pull-ups live on the master/hub board, not here, per the same standard.
 
+## Encoder connector
+
+`J2` is a 5-pin 2.54mm header matching the encoder's four conductors plus its shield:
+
+| Pin | Encoder wire | Board use |
+|---|---|---|
+| 1 | Red | V+, from the console 5V rail |
+| 2 | Black | 0V / GND |
+| 3 | White | Channel A, to `R1`/`R4` |
+| 4 | Green | Channel B, to `R2`/`R5` |
+| 5 | Bare / foil | Cable shield, to GND |
+
+Pin 5 carried `ENC_Z` in the first revision. The encoder has no Z channel, so it is now
+the shield return, terminated to GND **at the board end only** — single-point, to avoid
+a ground loop down the 2 m cable run.
+
 ## Pin map
 
 | Pico pin | Net | Function |
@@ -69,7 +95,6 @@ I2C bus pull-ups live on the master/hub board, not here, per the same standard.
 | GP6 (pin 9) | IRQ | Data-ready out to master |
 | GP16 (pin 21) | ENC_A | Encoder channel A |
 | GP17 (pin 22) | ENC_B | Encoder channel B |
-| GP18 (pin 24) | ENC_Z | Encoder index (optional) |
 | VSYS (pin 39) | +5V | Module power in |
 | 3V3 (pin 36) | +3V3 | Logic reference out |
 
@@ -82,8 +107,8 @@ At 600 P/R with 4x quadrature decoding, one full handwheel turn is 2400 counts.
 | U1 | Raspberry Pi Pico | Module:RaspberryPi_Pico_Common_THT |
 | J1 | XH2.54 6-pin console connector | Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical |
 | J2 | 5-pin encoder header | Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical |
-| R1-R3 | 4.7k pull-up to 3.3V | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
-| R4-R6 | 220R series protection | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
+| R1, R2 | 4.7k pull-up to 3.3V | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
+| R4, R5 | 220R series protection | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
 | R7, R8 | 1k LED current limit | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
 | C1 | 10uF bulk on 5V | Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm |
 | C2 | 100nF decoupling on 3.3V | Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm |
@@ -95,7 +120,11 @@ D1 and D2 match the PWR/LNK status cluster in the front panel drawing
 
 ## Status
 
-- Schematic: complete, **ERC 0 errors / 0 warnings**, netlist verified by inspection.
+- Schematic: complete, **ERC 0 errors / 0 warnings**, netlist verified by parsing the
+  exported `docs/netlist.net` — 13 components, 15 nets, every node checked against the
+  pin map above. A clean ERC alone does not prove connectivity; always read the netlist.
+- Encoder revision: `ENC_Z`, `R3` and `R6` removed after the datasheet confirmed the
+  `600B` part is AB two-phase. `J2` pin 5 repurposed as shield. GP18 is now free.
 - PCB layout: **not started**.
 - Cosmetic: reference and value text is auto-placed and overlaps net labels in a few
   places. Harmless electrically, but worth a tidy-up pass in the GUI before the

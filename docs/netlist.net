@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/speedypleath/KiCad/wheel-module-kicad/project/haptic-console-wheel-module.kicad_sch")
-		(date "2026-08-27T19:00:37")
+		(date "2026-08-27T19:38:09")
 		(tool "Eeschema 10.0.5")
 		(sheet
 			(number "1")
@@ -16,11 +16,11 @@
 				(source "haptic-console-wheel-module.kicad_sch")
 				(comment
 					(number "1")
-					(value "Optical encoder 600P/R, NPN open-collector, DC5-24V")
+					(value "Encoder E38S6G5-600B-G24N, 600P/R AB, NPN open-collector, DC5-24V")
 				)
 				(comment
 					(number "2")
-					(value "A/B/Z pulled up to 3.3V - Pico never sees encoder VCC")
+					(value "A/B pulled up to 3.3V - Pico never sees encoder VCC. No Z channel.")
 				)
 				(comment
 					(number "3")
@@ -338,7 +338,7 @@
 		)
 		(comp
 			(ref "J2")
-			(value "Encoder 600P/R NPN")
+			(value "E38S6G5-600B-G24N AB")
 			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical")
 			(fields
 				(field
@@ -508,60 +508,6 @@
 			)
 		)
 		(comp
-			(ref "R3")
-			(value "4.7k")
-			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
-			(fields
-				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description")
-				)
-			)
-			(libsource
-				(lib "Device")
-				(part "R")
-				(description "Resistor")
-			)
-			(property
-				(name "Sheetname")
-				(value "haptic-console-wheel-module")
-			)
-			(property
-				(name "Sheetfile")
-				(value "haptic-console-wheel-module.kicad_sch")
-			)
-			(property
-				(name "ki_keywords")
-				(value "R res resistor")
-			)
-			(property
-				(name "ki_fp_filters")
-				(value "R_*")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "8a4fbd6f-4473-492f-8785-f2c515b437cf")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
 			(ref "R4")
 			(value "220R")
 			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
@@ -655,60 +601,6 @@
 				(tstamps "/")
 			)
 			(tstamps "bfa0389e-9bef-4de2-a83b-c05db7d0df36")
-			(units
-				(unit
-					(name "A")
-					(pins
-						(pin
-							(num "1")
-						)
-						(pin
-							(num "2")
-						)
-					)
-				)
-			)
-		)
-		(comp
-			(ref "R6")
-			(value "220R")
-			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
-			(fields
-				(field
-					(name "Footprint") "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
-				(field
-					(name "Datasheet")
-				)
-				(field
-					(name "Description")
-				)
-			)
-			(libsource
-				(lib "Device")
-				(part "R")
-				(description "Resistor")
-			)
-			(property
-				(name "Sheetname")
-				(value "haptic-console-wheel-module")
-			)
-			(property
-				(name "Sheetfile")
-				(value "haptic-console-wheel-module.kicad_sch")
-			)
-			(property
-				(name "ki_keywords")
-				(value "R res resistor")
-			)
-			(property
-				(name "ki_fp_filters")
-				(value "R_*")
-			)
-			(sheetpath
-				(names "/")
-				(tstamps "/")
-			)
-			(tstamps "5096742b-8cdf-4bec-8804-bd32d727751e")
 			(units
 				(unit
 					(name "A")
@@ -1472,11 +1364,6 @@
 				(pintype "passive")
 			)
 			(node
-				(ref "R3")
-				(pin "1")
-				(pintype "passive")
-			)
-			(node
 				(ref "R7")
 				(pin "1")
 				(pintype "passive")
@@ -1592,43 +1479,6 @@
 		)
 		(net
 			(code "7")
-			(name "/ENC_Z")
-			(class "Default")
-			(node
-				(ref "R6")
-				(pin "1")
-				(pintype "passive")
-			)
-			(node
-				(ref "U1")
-				(pin "24")
-				(pinfunction "GPIO18_24")
-				(pintype "bidirectional")
-			)
-		)
-		(net
-			(code "8")
-			(name "/ENC_Z_RAW")
-			(class "Default")
-			(node
-				(ref "J2")
-				(pin "5")
-				(pinfunction "Pin_5_5")
-				(pintype "passive")
-			)
-			(node
-				(ref "R3")
-				(pin "2")
-				(pintype "passive")
-			)
-			(node
-				(ref "R6")
-				(pin "2")
-				(pintype "passive")
-			)
-		)
-		(net
-			(code "9")
 			(name "/IRQ")
 			(class "Default")
 			(node
@@ -1645,7 +1495,7 @@
 			)
 		)
 		(net
-			(code "10")
+			(code "8")
 			(name "/LNK")
 			(class "Default")
 			(node
@@ -1661,7 +1511,7 @@
 			)
 		)
 		(net
-			(code "11")
+			(code "9")
 			(name "/SCL")
 			(class "Default")
 			(node
@@ -1678,7 +1528,7 @@
 			)
 		)
 		(net
-			(code "12")
+			(code "10")
 			(name "/SDA")
 			(class "Default")
 			(node
@@ -1695,7 +1545,7 @@
 			)
 		)
 		(net
-			(code "13")
+			(code "11")
 			(name "GND")
 			(class "Default")
 			(node
@@ -1730,6 +1580,12 @@
 				(ref "J2")
 				(pin "2")
 				(pinfunction "Pin_2_2")
+				(pintype "passive")
+			)
+			(node
+				(ref "J2")
+				(pin "5")
+				(pinfunction "Pin_5_5")
 				(pintype "passive")
 			)
 			(node
@@ -1776,7 +1632,7 @@
 			)
 		)
 		(net
-			(code "14")
+			(code "12")
 			(name "Net-(D1-A)")
 			(class "Default")
 			(node
@@ -1792,7 +1648,7 @@
 			)
 		)
 		(net
-			(code "15")
+			(code "13")
 			(name "Net-(D2-A)")
 			(class "Default")
 			(node
@@ -1808,7 +1664,7 @@
 			)
 		)
 		(net
-			(code "16")
+			(code "14")
 			(name "unconnected-(J1-Pin_2-Pad2)")
 			(class "Default")
 			(node
@@ -1819,7 +1675,7 @@
 			)
 		)
 		(net
-			(code "17")
+			(code "15")
 			(name "unconnected-(U1-3V3_EN-Pad37)")
 			(class "Default")
 			(node
@@ -1830,7 +1686,7 @@
 			)
 		)
 		(net
-			(code "18")
+			(code "16")
 			(name "unconnected-(U1-ADC_VREF-Pad35)")
 			(class "Default")
 			(node
@@ -1841,7 +1697,7 @@
 			)
 		)
 		(net
-			(code "19")
+			(code "17")
 			(name "unconnected-(U1-AGND-Pad33)")
 			(class "Default")
 			(node
@@ -1852,7 +1708,7 @@
 			)
 		)
 		(net
-			(code "20")
+			(code "18")
 			(name "unconnected-(U1-GPIO0-Pad1)")
 			(class "Default")
 			(node
@@ -1863,7 +1719,7 @@
 			)
 		)
 		(net
-			(code "21")
+			(code "19")
 			(name "unconnected-(U1-GPIO1-Pad2)")
 			(class "Default")
 			(node
@@ -1874,7 +1730,7 @@
 			)
 		)
 		(net
-			(code "22")
+			(code "20")
 			(name "unconnected-(U1-GPIO3-Pad5)")
 			(class "Default")
 			(node
@@ -1885,7 +1741,7 @@
 			)
 		)
 		(net
-			(code "23")
+			(code "21")
 			(name "unconnected-(U1-GPIO7-Pad10)")
 			(class "Default")
 			(node
@@ -1896,7 +1752,7 @@
 			)
 		)
 		(net
-			(code "24")
+			(code "22")
 			(name "unconnected-(U1-GPIO8-Pad11)")
 			(class "Default")
 			(node
@@ -1907,7 +1763,7 @@
 			)
 		)
 		(net
-			(code "25")
+			(code "23")
 			(name "unconnected-(U1-GPIO9-Pad12)")
 			(class "Default")
 			(node
@@ -1918,7 +1774,7 @@
 			)
 		)
 		(net
-			(code "26")
+			(code "24")
 			(name "unconnected-(U1-GPIO10-Pad14)")
 			(class "Default")
 			(node
@@ -1929,7 +1785,7 @@
 			)
 		)
 		(net
-			(code "27")
+			(code "25")
 			(name "unconnected-(U1-GPIO11-Pad15)")
 			(class "Default")
 			(node
@@ -1940,7 +1796,7 @@
 			)
 		)
 		(net
-			(code "28")
+			(code "26")
 			(name "unconnected-(U1-GPIO12-Pad16)")
 			(class "Default")
 			(node
@@ -1951,7 +1807,7 @@
 			)
 		)
 		(net
-			(code "29")
+			(code "27")
 			(name "unconnected-(U1-GPIO13-Pad17)")
 			(class "Default")
 			(node
@@ -1962,7 +1818,7 @@
 			)
 		)
 		(net
-			(code "30")
+			(code "28")
 			(name "unconnected-(U1-GPIO14-Pad19)")
 			(class "Default")
 			(node
@@ -1973,7 +1829,7 @@
 			)
 		)
 		(net
-			(code "31")
+			(code "29")
 			(name "unconnected-(U1-GPIO15-Pad20)")
 			(class "Default")
 			(node
@@ -1984,7 +1840,18 @@
 			)
 		)
 		(net
-			(code "32")
+			(code "30")
+			(name "unconnected-(U1-GPIO18-Pad24)")
+			(class "Default")
+			(node
+				(ref "U1")
+				(pin "24")
+				(pinfunction "GPIO18_24")
+				(pintype "bidirectional+no_connect")
+			)
+		)
+		(net
+			(code "31")
 			(name "unconnected-(U1-GPIO19-Pad25)")
 			(class "Default")
 			(node
@@ -1995,7 +1862,7 @@
 			)
 		)
 		(net
-			(code "33")
+			(code "32")
 			(name "unconnected-(U1-GPIO20-Pad26)")
 			(class "Default")
 			(node
@@ -2006,7 +1873,7 @@
 			)
 		)
 		(net
-			(code "34")
+			(code "33")
 			(name "unconnected-(U1-GPIO21-Pad27)")
 			(class "Default")
 			(node
@@ -2017,7 +1884,7 @@
 			)
 		)
 		(net
-			(code "35")
+			(code "34")
 			(name "unconnected-(U1-GPIO22-Pad29)")
 			(class "Default")
 			(node
@@ -2028,7 +1895,7 @@
 			)
 		)
 		(net
-			(code "36")
+			(code "35")
 			(name "unconnected-(U1-GPIO26_ADC0-Pad31)")
 			(class "Default")
 			(node
@@ -2039,7 +1906,7 @@
 			)
 		)
 		(net
-			(code "37")
+			(code "36")
 			(name "unconnected-(U1-GPIO27_ADC1-Pad32)")
 			(class "Default")
 			(node
@@ -2050,7 +1917,7 @@
 			)
 		)
 		(net
-			(code "38")
+			(code "37")
 			(name "unconnected-(U1-GPIO28_ADC2-Pad34)")
 			(class "Default")
 			(node
@@ -2061,7 +1928,7 @@
 			)
 		)
 		(net
-			(code "39")
+			(code "38")
 			(name "unconnected-(U1-RUN-Pad30)")
 			(class "Default")
 			(node
@@ -2072,7 +1939,7 @@
 			)
 		)
 		(net
-			(code "40")
+			(code "39")
 			(name "unconnected-(U1-VBUS-Pad40)")
 			(class "Default")
 			(node
