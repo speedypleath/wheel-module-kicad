@@ -20,6 +20,18 @@ sheet metadata and touches no symbol, pin, or net. It was verified afterwards wi
 pre-edit export (identical, 245 net names). Do not treat this as licence to hand-edit
 anything that carries connectivity.
 
+**Amendment, 2026-08-28 — `pcbnew` scripting is allowed on `.kicad_pcb`, text editing
+still is not.** The fabricated board's 38 traces and its GND pour were created by
+scripting KiCad's own bundled `pcbnew` Python module
+(`/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/3.9/bin/python3`),
+not by editing the S-expression. This is the same distinction `../control-unit-kicad/CLAUDE.md`
+draws: `pcbnew` goes through KiCad's real object model and writer, so it cannot desync
+pin or property data the way regex munging can. It was forced here — the MCP
+`pcb_add_zone` tool actively destroys routing (see the fabricated-PCB section below) and
+`pcb_autoroute` produces shorts. Prefer MCP tools for placement, which they handle well;
+use `pcbnew` for traces and zones. Always re-run `kicad-cli pcb drc` afterwards. Raw text
+edits to `.kicad_pcb` remain banned.
+
 ## Project creation gotchas (2026-08-27, first session)
 
 Three traps hit while creating this project. All cost real debugging time.
@@ -156,6 +168,47 @@ land somewhere useless.
 **32 unconnected pads in the perfboard DRC report is the correct result.** The board
 is hand-wired and has no copper traces. Do not try to "fix" it.
 
+## Fabricated PCB layout (2026-08-28 session)
+
+`project/haptic-console-wheel-module.kicad_pcb`, 68 x 58 mm, 2-layer, all through-hole.
+Separate file from the perfboard. Five traps here, all of them expensive.
+
+**Get pad coordinates from `pcbnew`, never from a regex over the S-expression.** A
+hand-rolled parser reported R1 at y=43.18 and R5 at y=48.26; `pcbnew` (and DRC) put
+them the other way round. Routing was done against the wrong numbers and produced six
+net shorts. The parser agreed with what had been *intended*, which is exactly what
+makes this failure mode dangerous — it looks like confirmation. Dump pads with
+`fp.Pads()` / `p.GetPosition()` and treat that as the only truth.
+
+**The MCP `pcb_add_zone` tool is not usable on this KiCad.** It returns a plausible
+UUID, but `pcbnew` then reports `GetAreaCount() == 0` — no zone was really created.
+Worse, writing the file **silently dropped all 38 routed segments**. Build zones through
+`pcbnew` instead. Note `ZONE.AddPolygon()` accepts only a `SHAPE_LINE_CHAIN` in practice,
+even though the SWIG error lists a `std::vector<VECTOR2I>` overload too; a Python list of
+`VECTOR2I` fails. Fill with `pcbnew.ZONE_FILLER(board).Fill(board.Zones())`.
+
+**`pcb_autoroute` is worse than not routing.** `strategy="freerouting"` fails outright
+(the server looks for the `pcbnew` module and only recognises KiCad 8, though KiCad 10's
+bundled Python has it). It silently falls back to `strategy="simple"`, which does
+L-shaped routing with **no collision avoidance at all**: 32 traces produced 20 crossing
+tracks, 12 shorts, 24 co-located holes and 14 dangling vias. Route by hand.
+
+**`pcbnew.FindNet(name)` is unreliable here** — it sometimes returns a bare
+`SwigPyObject` with no `GetNetCode`. It worked in one run and failed in the next on the
+same file. Build a netname → netcode map from pads instead:
+`codes[p.GetNetname()] = p.GetNetCode()`.
+
+**GND needs no traces.** All 14 GND pads are through-hole, so a filled `B.Cu` pour
+connects them all. That removes 14 of 32 connections before routing starts, and is what
+makes hand-routing this board tractable.
+
+**Routing constraints worth remembering.** The Pico's pad rows are on 2.54 mm pitch with
+1.6 mm pads, so any track crossing under it must thread a 0.94 mm gap — avoid it; go
+around the bottom (y=56.5) instead, which is also clear of the footprint's
+`Antenna Copper Keep Out` zone (tracks not allowed, y 46.21-55.21). The Pico courtyard
+reaches x=44.43, well past its x=41.78 pad column, so right-side parts need to start at
+x>=46.5.
+
 ## TODO
 
 - [ ] Cosmetic pass in the GUI: auto-placed reference/value text overlaps net labels
@@ -165,8 +218,10 @@ is hand-wired and has no copper traces. Do not try to "fix" it.
       render trick is **not** added here. Worth doing if the render is going into the
       dissertation, but it carries the via-collision pain documented in
       `../control-unit-kicad/CLAUDE.md` - read that first.
-- [ ] Manufactured PCB layout (not started). Separate file from the perfboard.
-      Board outline, placement, routing, DRC, then Gerbers.
+- [x] ~~Manufactured PCB layout~~ - done 2026-08-28. 68 x 58 mm 2-layer, 38 segments
+      plus a filled `B.Cu` GND pour, 0 DRC errors / 0 unconnected. Gerbers exported.
+- [ ] Mounting holes are **not** on the fabricated board yet. Decide the M3 chassis
+      fixing pattern first, then add them.
 - [x] ~~Decide 5V versus 12V encoder supply~~ - 5V committed 2026-08-28; 12V deferred
       to be designed alongside the Eurorack translation module's 24V rail.
 - [ ] Firmware: quadrature decode on GP16/GP17, I2C target, IRQ on GP6.

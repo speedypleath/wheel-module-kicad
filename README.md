@@ -139,7 +139,17 @@ D1 and D2 match the PWR/LNK status cluster in the front panel drawing
   holes. Wire-by-wire build order in `docs/perfboard-wiring.md`, render in
   `renders/perfboard-top.png`. The 32 unconnected pads DRC reports are expected -
   the board is hand-wired and carries no copper traces.
-- Manufactured PCB layout: **not started**.
+- Manufactured PCB layout: **complete**, 2-layer, 68 x 58 mm, all through-hole.
+  **0 DRC errors, 0 shorts, 0 unconnected items** — every net is connected. 38 routed
+  segments plus a filled GND pour on `B.Cu` (3270 mm² of copper), which all 14 GND pads
+  tie into directly, so GND needs no traces. Renders in `renders/fab-top.png` and
+  `renders/fab-bottom.png`; fabrication set in
+  `project/haptic-console-wheel-module-gerbers.zip`.
+  Two runs sit on the back layer because they would otherwise cross the J1 signal fan
+  on the front: `/LNK` (U1.4 → R8.1) and the `+3V3` branch feeding R7, which goes round
+  the bottom at y=56.5 rather than threading the 0.94 mm gaps between the Pico's pad
+  rows. The front `+3V3` spine is offset to x=48.5 rather than running down the x=46.5
+  pad column, because R5.1 (`/ENC_B`) sits mid-column at 46.5,43.18.
 - Cosmetic: reference and value text is auto-placed and overlaps net labels in a few
   places. Harmless electrically, but worth a tidy-up pass in the GUI before the
   schematic goes into the dissertation.
