@@ -118,11 +118,17 @@ LINKS = [
     Link("+3V3", [(18, 7), (17.5, 7), (17.5, 25), (18, 25)]),     # U1.36 -> pull-up rail
     Link("/LNK", [(6, 6), (6.5, 6), (6.5, 29), (6, 29)]),         # U1.4 -> LED resistor
     Link("GND",  [(7, 5), (7.5, 5), (7.5, 27), (7, 27)]),         # GND spine, rows 5..27
-    Link("GND",  [(7, 10), (7.5, 10)]),                           #   tap row 10
-    Link("GND",  [(7, 15), (7.5, 15)]),                           #   tap row 15
-    Link("GND",  [(7, 20), (7.5, 20)]),                           #   tap row 20
+    # One physical wire runs the length of the spine and is soldered at each of
+    # rows 10, 15 and 20 on the way past.  These three links are those solder
+    # joints, not wires of their own, so they draw no jumper.
+    Link("GND",  [(7, 10), (7.5, 10)], wire=False),               #   tap row 10
+    Link("GND",  [(7, 15), (7.5, 15)], wire=False),               #   tap row 15
+    Link("GND",  [(7, 20), (7.5, 20)], wire=False),               #   tap row 20
     Link("GND",  [(27, 22), (26.5, 22), (26.5, 27), (27, 27)]),   # J2.5 shield -> GND
-    Link("GND",  [(28, 25), (28.5, 25), (28.5, 27), (28, 27)]),   # J2.2 -> GND
+    # Passes directly over J2 pin 1, where the +5V wire lands.  The copper track
+    # dodges into the col-28.5 gutter; the insulated wire simply lies over it,
+    # so lift the model a tier to render the over/under cleanly.
+    Link("GND",  [(28, 25), (28.5, 25), (28.5, 27), (28, 27)], z_tier=1.0),
 ]
 
 SPEC = BoardSpec(
@@ -142,4 +148,22 @@ SPEC = BoardSpec(
         ("U1.33", "AGND is a no-connect; tying it to GND is the power_out/power_out ERC"),
         ("J1.2",  "hub 3.3V stays unconnected; the Pico makes its own 3.3V"),
     ],
+    # The link wires are also drawn as physical jumper wires, in the colours of
+    # the boxed kit.  Console convention, shared with the control unit so the
+    # same net is the same colour on every board: red for power, blue for GND
+    # (the kit has no black), yellow for the I2C/IRQ bus, and one of
+    # white/orange/green for each remaining signal.
+    #
+    # They run on the SOLDER side.  The component side is crowded -- the Pico
+    # spans twenty rows, and J1, J2 and the LEDs sit on the edges the long links
+    # follow -- so front-side wires would lie across component bodies.  The back
+    # is flat: insulated wire over a copper strip touches nothing.
+    wire_side="back",
+    wire_colors={
+        "+5V":  "red",
+        "+3V3": "red",
+        "GND":  "blue",
+        "/IRQ": "yellow",
+        "/LNK": "green",
+    },
 )

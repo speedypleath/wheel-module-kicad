@@ -149,6 +149,8 @@ D1 and D2 match the PWR/LNK status cluster in the front panel drawing
   expected: perfboard holes modelled as vias dangle by construction.
   Generated from `scripts/layout.py` by the shared `~/KiCad/kicad-stripboard`
   engine - rebuild it rather than editing the board.
+  The nine physical link wires are modelled as colour-coded 3D jumper wires on the
+  **solder** side, keeping the crowded component side clear.
 - Manufactured PCB layout: **complete**, 2-layer, 68 x 58 mm, all through-hole.
   **0 DRC errors, 0 shorts, 0 unconnected items** — every net is connected. 38 routed
   segments plus a filled GND pour on `B.Cu` (3270 mm² of copper), which all 14 GND pads

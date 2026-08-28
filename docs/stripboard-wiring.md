@@ -124,27 +124,38 @@ Two parts are very slightly off-grid and this is fine — the leads bend:
 Pico's `/ENC_A`/`/ENC_B` pins down to the `_RAW` rows with **no link wire at
 all**, so the two noise-sensitive nets are pure copper.
 
-## Link wires — 12 of them
+## Link wires — 9 of them
 
-Insulated wire on the component side, hole to hole.
+**Insulated wire on the solder side**, hole to hole. The component side is
+crowded — the Pico spans twenty rows and `J1`, `J2` and the LEDs sit on the very
+edges the long links follow — so wires there would lie across component bodies.
+The back is flat: insulated wire over a copper strip touches nothing.
 
-| # | Net | From | To | Purpose |
-|---|---|---|---|---|
-| 1 | `+5V` | (2,7) `J1.3` | (2,2) | console 5V up to the rail |
-| 2 | `/IRQ` | (2,10) `J1.6` | (4,11) | J1's IRQ pin down to the Pico's |
-| 3 | `+5V` | (19,4) | (19,2) | Pico VSYS to the rail |
-| 4 | `+5V` | (27,2) | (28,26) `J2.1` | rail down to the encoder connector |
-| 5 | `+3V3` | (18,7) | (18,25) | Pico 3V3 out to the pull-up rail |
-| 6 | `/LNK` | (6,6) | (6,29) | Pico GP2 down to the LED resistor |
-| 7 | `GND` | (7,5) | (7,10) | GND spine, ties the bus rows together |
-| 8 | `GND` | (7,10) | (7,15) | ” |
-| 9 | `GND` | (7,15) | (7,20) | ” |
-| 10 | `GND` | (7,20) | (7,27) | ” |
-| 11 | `GND` | (27,22) | (27,27) | `J2.5` cable shield to GND |
-| 12 | `GND` | (28,25) | (28,27) | `J2.2` encoder GND to GND |
+Colours follow the console convention, shared with the control unit so the same
+net is the same colour on every board: **red** for power (`+5V` and `+3V3` both —
+the kit has six colours and consistency across boards wins over telling the two
+rails apart at a glance), **blue** for GND (the kit has no black), **yellow** for
+the I²C/IRQ bus, **green** for `/LNK`.
 
-Wires 7–10 are one continuous run down column 7 if you prefer; solder it at each
-of rows 5, 10, 15, 20 and 27.
+| # | Net | Colour | From | To | Purpose |
+|---|---|---|---|---|---|
+| 1 | `+5V` | red | (2,7) `J1.3` | (2,2) | console 5V up to the rail |
+| 2 | `/IRQ` | yellow | (2,10) `J1.6` | (4,11) | J1's IRQ pin down to the Pico's |
+| 3 | `+5V` | red | (19,4) | (19,2) | Pico VSYS to the rail |
+| 4 | `+5V` | red | (27,2) | (28,26) `J2.1` | rail down to the encoder connector |
+| 5 | `+3V3` | red | (18,7) | (18,25) | Pico 3V3 out to the pull-up rail |
+| 6 | `/LNK` | green | (6,6) | (6,29) | Pico GP2 down to the LED resistor |
+| 7 | `GND` | blue | (7,5) | (7,27) | GND spine — **solder it also at rows 10, 15 and 20 on the way past** |
+| 8 | `GND` | blue | (27,22) | (27,27) | `J2.5` cable shield to GND |
+| 9 | `GND` | blue | (28,25) | (28,27) | `J2.2` encoder GND to GND |
+
+Wire 7 is one length soldered at five holes — rows 5, 10, 15, 20 and 27. Those
+three intermediate joints are what tie the Pico's GND rows into one bus; skipping
+any of them leaves that row floating. (The board file models them as three extra
+zero-length links, which is why the netlist counts twelve and this table nine.)
+
+Wire 9 passes directly over `J2` pin 1, where wire 4 lands. Both are insulated —
+let 9 lie over 4 rather than trying to dodge it.
 
 ## Build order
 
@@ -152,11 +163,14 @@ of rows 5, 10, 15, 20 and 27.
    continuity across the gap — a partial cut is the hardest fault to find later.
 2. **Fit the Pico on female headers**, not soldered down. Two GND strips and the
    whole cut column run underneath it.
-3. **Link wires next**, while the board is still flat and empty. They are the
-   things you cannot reach once the connectors are in.
-4. **Resistors, LEDs, caps.** All resistors vertical. Watch LED polarity: pad 1
+3. **Resistors, LEDs, caps.** All resistors vertical. Watch LED polarity: pad 1
    is the cathode and goes to the GND row (27) for both.
-5. **`J1` and `J2` last.**
+4. **`J1` and `J2`.**
+5. **Link wires last.** They go on the *solder* side, so they follow the parts
+   rather than preceding them: each end lands in the named hole and is soldered
+   to that strip alongside the component lead already there. Strip and tin both
+   ends first — a wire soldered onto an already-crowded joint is the easiest one
+   to lift by accident.
 6. Before power-up, check with a meter: `+5V` to `GND` open, `+3V3` to `GND`
    open, and **`U1.33` (AGND) isolated from GND** — that last one is the specific
    thing this layout's row-10 cut exists to guarantee.

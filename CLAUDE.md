@@ -267,6 +267,24 @@ it passes. Travelling *along* a strip's own row is fine - same net.
 **Skip grid vias inside footprint courtyards**, or every hole under a component body
 trips `pth_inside_courtyard`. They are hidden under the part anyway.
 
+**The link wires are also drawn as physical jumper wires, on the SOLDER side.**
+The `wires` stage places one decorative `JumperWires` footprint per link - no pads,
+no net, so DRC is unaffected (still 0 errors, still exactly 240 warnings). Colours
+follow the control unit's convention so a net is the same colour on every board:
+red power, blue GND (the kit has no black), yellow I2C/IRQ, green `/LNK`.
+
+They run on the **back** (`wire_side="back"`) because the component side is crowded -
+the Pico spans twenty rows and `J1`/`J2`/the LEDs sit on the edges the long links
+follow, so front-side wires lay across component bodies. This inverts the build
+order: links go on **after** the parts, not before.
+
+A wire is drawn straight between a link's **first and last** waypoint; the gutter
+waypoints in between are a copper-routing device only, and an insulated wire may
+pass over anything. The three GND spine taps carry `wire=False` - they are solder
+joints on one continuous run, not wires of their own, which is why the file has 12
+links but 9 wires. `${JUMPER_WIRES_LIB}` must be configured (Preferences > Configure
+Paths) or the models silently fail to resolve.
+
 ### pcbnew traps hit this session
 
 **This pcbnew's SWIG proxies degrade after the first `board.Remove()`** - and it
