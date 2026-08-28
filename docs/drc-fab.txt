@@ -1,0 +1,38 @@
+** Drc report for haptic-console-wheel-module.kicad_pcb **
+** Created on 2026-08-28T22:42:54 **
+** Report includes: Errors, Warnings **
+
+** Found 6 DRC violations **
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; error
+    @(44.6375 mm, 53.9750 mm): Reference field of U1
+    @(46.5000 mm, 53.3400 mm): PTH pad 1 [/ENC_A] of R4
+[lib_footprint_mismatch]: Footprint 'RaspberryPi_Pico_Common_THT' does not match copy in library 'Module'
+    Local override; warning
+    @(24.0000 mm, 5.0800 mm): Footprint U1
+[lib_footprint_mismatch]: Footprint 'R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal' does not match copy in library 'Resistor_THT'
+    Local override; warning
+    @(18.0000 mm, 30.0000 mm): Footprint R8
+[lib_footprint_mismatch]: Footprint 'R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal' does not match copy in library 'Resistor_THT'
+    Local override; warning
+    @(18.0000 mm, 36.0000 mm): Footprint R7
+[lib_footprint_mismatch]: Footprint 'PinHeader_1x05_P2.54mm_Vertical' does not match copy in library 'Connector_PinHeader_2.54mm'
+    Local override; warning
+    @(62.0000 mm, 53.3400 mm): Footprint J2
+[lib_footprint_mismatch]: Footprint 'JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical' does not match copy in library 'Connector_JST'
+    Local override; warning
+    @(5.0000 mm, 10.1600 mm): Footprint J1
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** Ignored checks **
+    - Footprint has no courtyard defined
+    - Track endpoint not centered on via
+    - Tuning profile track geometries
+    - Footprint doesn't match symbol's footprint filters
+    - PTH inside courtyard
+    - NPTH inside courtyard
+
+** End of Report **
