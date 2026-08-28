@@ -216,6 +216,23 @@ x>=46.5.
 plain-perfboard one, for continuous-strip Veroboard. Build guide:
 `docs/stripboard-wiring.md`. Strips run horizontally on `B.Cu`, link wires on `F.Cu`.
 
+**The board is generated, not hand-built - rebuild it, don't patch it.**
+`scripts/layout.py` is the source of truth (pure data, no `pcbnew`); the engine that
+turns it into copper lives in the shared **`~/KiCad/kicad-stripboard`** repo, alongside
+`jumper-wires-kicad`. To regenerate from the perfboard seed:
+
+```bash
+~/KiCad/kicad-stripboard/build.py scripts/layout.py \
+    project/haptic-console-wheel-module-stripboard.kicad_pcb \
+    --from project/haptic-console-wheel-module-perfboard.kicad_pcb
+```
+
+That reproduces the committed board exactly (same file size, zero diff once sorted -
+only KiCad's internal emission order and UUIDs differ). The four stages run as separate
+processes, and the last one is the strip audit, which fails the build. Every pcbnew
+trap below is handled inside the engine; read `stripboard/kicad.py` before working
+around any of them again.
+
 **The rule that drives the whole layout: a strip is shared by every hole in its
 row, including holes under pins nobody wired.** The question is never "did I connect
 the right pads" but "does anything else sit on this strip". Two live instances here:
@@ -267,6 +284,12 @@ strips run under the module by construction, and pointless here since this is a
 non-W Pico with no radio). **Disable the rule area instead**:
 `SetDoNotAllowTracks(False)` and friends. It leaves the zone in place as
 documentation and saves correctly.
+
+**A stage that mutates the board segfaults on exit, after saving successfully.**
+pcbnew's SWIG objects have no destructors (`no destructor found` on stderr), and
+CPython's interpreter teardown then crashes - exit status -11 on a build whose
+`SaveBoard` had already worked. Leave with `os._exit(rc)` after flushing, or every
+successful build reports failure.
 
 **The stackup API is not usable from Python here.** `GetStackupDescriptor()` returns
 a bare `SwigPyObject` with no `GetCount`, and there is no `Cast_to_BOARD_STACKUP`.

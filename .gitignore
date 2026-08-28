@@ -30,3 +30,11 @@ fp-info-cache
 # Unzipped gerber/drill output — project/haptic-console-wheel-module-gerbers.zip
 # is the tracked deliverable, this directory is regenerated from it
 project/gerbers/
+
+# DRC/ERC reports — regenerated on demand by `kicad-cli pcb drc`
+*-drc.rpt
+*-erc.rpt
+
+# Python bytecode from scripts/
+__pycache__/
+*.py[cod]
