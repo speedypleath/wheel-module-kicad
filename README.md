@@ -50,6 +50,15 @@ rated 5-24V window. If the encoder proves sluggish or noisy at 5V, the documente
 alternative is a small 5V to 12V boost feeding `J2` pin 1 only. Because the pull-ups
 reference 3.3V, that change requires **no** modification to the logic side.
 
+**Decision, 2026-08-28: the 12V path is deliberately not built.** The planned Eurorack
+translation module needs 24V regardless, so if a higher-voltage rail is ever added it
+should be designed once for both modules rather than bolted onto M3 alone. Treat 5V as
+the committed supply until that point. Note also that if the encoder signals ever look
+sluggish, supply voltage is the *less* likely cause: edge shape here is set by the
+pull-up RC (4.7k against ~300 pF, ~3 us) which does not change with encoder supply at
+all. Rounded edges point at the pull-ups (fit 2.2k or 1k); missed counts that worsen
+with rotation speed point at the supply.
+
 ## Console interface
 
 `J1` is the standard **XH2.54 6-pin** inter-module connector (standard v1.1):
@@ -125,7 +134,12 @@ D1 and D2 match the PWR/LNK status cluster in the front panel drawing
   pin map above. A clean ERC alone does not prove connectivity; always read the netlist.
 - Encoder revision: `ENC_Z`, `R3` and `R6` removed after the datasheet confirmed the
   `600B` part is AB two-phase. `J2` pin 5 repurposed as shield. GP18 is now free.
-- PCB layout: **not started**.
+- Perfboard layout: **complete**, 28x28 holes on 2.54mm pitch (71.12 x 71.12 mm cut),
+  **0 DRC errors / 9 cosmetic warnings**. Every pad verified on-grid with no shared
+  holes. Wire-by-wire build order in `docs/perfboard-wiring.md`, render in
+  `renders/perfboard-top.png`. The 32 unconnected pads DRC reports are expected -
+  the board is hand-wired and carries no copper traces.
+- Manufactured PCB layout: **not started**.
 - Cosmetic: reference and value text is auto-placed and overlaps net labels in a few
   places. Harmless electrically, but worth a tidy-up pass in the GUI before the
   schematic goes into the dissertation.
@@ -144,6 +158,7 @@ stock libraries and reports spurious violations.
 
 ## Related
 
+- `docs/perfboard-wiring.md` - hand-wiring guide for the perfboard build
 - `../control-unit-kicad` - the Control Unit (M6) board, already fab-ready
 - Obsidian: `Notes/Haptic Console - Connector Standard.md`
 - Obsidian: `concepts/haptic-console-wheel-module.md`

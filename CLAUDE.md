@@ -123,10 +123,50 @@ go through PDF plus `pdftoppm`.
 - I2C bus pull-ups belong on the master/hub board, not on this module.
 - Any future module signal must keep the XH2.54 6-pin standard v1.1 pinout.
 
+## Perfboard layout (2026-08-28 session)
+
+Placed with the `kicad-mcp` tools into
+`project/haptic-console-wheel-module-perfboard.kicad_pcb`. 28x28 holes at 2.54mm
+(71.12 x 71.12 mm cut). Build guide: `docs/perfboard-wiring.md`.
+
+**Every footprint in this project has pad 1 at local (0,0)** - Pico, JST XH, pin
+header, axial resistors, disc caps, LEDs, all of them. That makes grid placement
+trivial: put the footprint origin exactly on the target hole and pad 1 lands there.
+Rotation then follows the control-unit mapping (rot90: `world = (ox + ly, oy - lx)`),
+and rot180/rot270 behave as the plain rotation matrix predicts. Verified by
+recomputing every pad's world position from the saved file rather than trusting it.
+
+**`pcb_set_board_outline` must not be given a repeated closing point.** Passing
+`[[0,0],[w,0],[w,h],[0,h],[0,0]]` produces a zero-length segment and DRC reports
+both `invalid_outline: null or very small length` and `self-intersecting`. Pass the
+four corners only; the tool closes the polygon itself.
+
+**Courtyards, not just holes, decide spacing.** Two `R_Axial_DIN0207_..._P10.16mm`
+resistors on adjacent 2.54mm rows pass a hole-collision check but fail
+`courtyards_overlap` - and physically the bodies touch. Keep axial parts **two rows
+apart**. Likewise the Pico footprint's courtyard extends about 2mm past its pad
+columns, so a resistor pad one column outside the Pico's pin column still trips
+`pth_inside_courtyard`. Leave two columns.
+
+**Verify placement by reading pads back, not by trusting the move calls.** Same
+lesson as the schematic netlist: recompute world positions, check for shared holes,
+off-grid pads, and out-of-bounds, then run DRC. A move that "succeeded" can still
+land somewhere useless.
+
+**32 unconnected pads in the perfboard DRC report is the correct result.** The board
+is hand-wired and has no copper traces. Do not try to "fix" it.
+
 ## TODO
 
 - [ ] Cosmetic pass in the GUI: auto-placed reference/value text overlaps net labels
-      around J1, J2, R1-R3 and the LEDs.
-- [ ] PCB layout (not started). Board outline, placement, routing, DRC.
-- [ ] Decide 5V versus 12V encoder supply after bench-testing the encoder at 5V.
+      around J1, J2, R1-R3 and the LEDs. Same issue on the perfboard silkscreen
+      (D2's reference sits under J1's outline) - three `silk_overlap` warnings.
+- [ ] Perfboard hole grid: the background via grid the control unit uses for its
+      render trick is **not** added here. Worth doing if the render is going into the
+      dissertation, but it carries the via-collision pain documented in
+      `../control-unit-kicad/CLAUDE.md` - read that first.
+- [ ] Manufactured PCB layout (not started). Separate file from the perfboard.
+      Board outline, placement, routing, DRC, then Gerbers.
+- [x] ~~Decide 5V versus 12V encoder supply~~ - 5V committed 2026-08-28; 12V deferred
+      to be designed alongside the Eurorack translation module's 24V rail.
 - [ ] Firmware: quadrature decode on GP16/GP17, I2C target, IRQ on GP6.
