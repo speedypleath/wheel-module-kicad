@@ -209,15 +209,100 @@ around the bottom (y=56.5) instead, which is also clear of the footprint's
 reaches x=44.43, well past its x=41.78 pad column, so right-side parts need to start at
 x>=46.5.
 
+## Stripboard / Veroboard layout (2026-08-28 session)
+
+`project/haptic-console-wheel-module-stripboard.kicad_pcb`, 28 x 30 holes,
+73.66 x 78.74 mm. A **third** build, separate from both the fabricated board and the
+plain-perfboard one, for continuous-strip Veroboard. Build guide:
+`docs/stripboard-wiring.md`. Strips run horizontally on `B.Cu`, link wires on `F.Cu`.
+
+**The rule that drives the whole layout: a strip is shared by every hole in its
+row, including holes under pins nobody wired.** The question is never "did I connect
+the right pads" but "does anything else sit on this strip". Two live instances here:
+
+- **Row offset 7 from Pico pin 1 must be cut.** Pico pin 8 (GND) is on the left of
+  that row and **pin 33 (AGND)** on the right. Leaving it whole ties AGND to GND and
+  re-creates the `power_out`/`power_out` ERC violation documented above.
+- **Row offsets 2, 12 and 17 must NOT be cut** - they carry GND on *both* sides
+  (pins 3/38, 13/28, 18/23), so leaving them whole buys six GND connections and the
+  GND bus for free. Getting this backwards is easy and costs either a short or a
+  dozen needless link wires.
+
+`J1` pin 2 (hub 3.3V) is the same class of trap: placed flush beside the Pico it
+lands on the `/LNK` strip, breaking the "stays unconnected" invariant. Cut column 5
+isolates it.
+
+**Derive every strip's net from the pads on it, never from intent** - and treat a
+segment carrying two nets as a hard error that aborts the write. That check is what
+makes this layout trustworthy; it caught a stale-placement run immediately.
+**Corollary: a rail with no pads on it cannot infer a net.** Row 2 (+5V) is reached
+only by link wires, so it silently landed on net 0 and every link touching it read as
+a short. Rails like that need an explicit net override.
+
+**Do not put a via at a cut hole.** A spot-faced hole has no copper. A 2.54 mm gap
+minus the 0.95 mm end cap on each strip leaves only 0.32 mm either side of a 1.5 mm
+via - guaranteed shorts. Omit the via; the `B.SilkS` X marker documents the cut.
+
+**Route link wires only along gutter lines** (half-pitch offsets between hole lines),
+with 1.27 mm step-in segments. A link running down a hole column touches every via
+it passes. Travelling *along* a strip's own row is fine - same net.
+
+**Skip grid vias inside footprint courtyards**, or every hole under a component body
+trips `pth_inside_courtyard`. They are hidden under the part anyway.
+
+### pcbnew traps hit this session
+
+**This pcbnew's SWIG proxies degrade after the first `board.Remove()`** - and it
+poisons *unrelated* objects, not just the removed one. After removing a `PCB_SHAPE`,
+`FindFootprintByReference` started returning bare `SwigPyObject`, and the footprint
+plugin behind `pcbnew.FootprintLoad` lost its methods. Same family as the `FindNet`
+flakiness above. Two defences: do **every** lookup and library load *before* the first
+removal, and keep **one kind of mutation per process run** (this build is three
+scripts: place / keepout / copper).
+
+**`footprint.Remove(zone)` corrupts the board badly enough that `SaveBoard` writes a
+zero-byte file.** Hit while trying to delete the Pico's `Antenna Copper Keep Out`
+(which forbids tracks between the pin rows - unhonourable on Veroboard, where the
+strips run under the module by construction, and pointless here since this is a
+non-W Pico with no radio). **Disable the rule area instead**:
+`SetDoNotAllowTracks(False)` and friends. It leaves the zone in place as
+documentation and saves correctly.
+
+**The stackup API is not usable from Python here.** `GetStackupDescriptor()` returns
+a bare `SwigPyObject` with no `GetCount`, and there is no `Cast_to_BOARD_STACKUP`.
+The control unit's tan-Veroboard colour therefore cannot be applied by script, and
+raw text edits stay banned - so it is a GUI job (Board Setup > Physical Stackup).
+Renders are green FR4 until then.
+
+**Expected DRC result: 0 errors, 0 unconnected pads, and ~240 warnings.** The
+warnings are `via_dangling`/`track_dangling` plus three pre-existing
+`lib_footprint_mismatch` inherited from the perfboard file. Dangling is inherent to
+modelling perfboard holes as vias - every hole touches only the strip on the back -
+and bare strips really are unconnected copper on a stripboard. This is the
+stripboard equivalent of "32 unconnected pads is the correct result". **Check errors
+with `--severity-error`; do not chase the warnings.**
+
+## MCP server scope (2026-08-28)
+
+The `kicad-seeed` / `kicad-namelessdrake` servers were registered in `~/.claude.json`
+at **local (per-project) scope**, attached only to `control-unit-kicad` and
+`pneumatic-module-kicad`. Local scope does not inherit across sibling directories, so
+a session started in `wheel-module-kicad` got none of them and had to do everything
+through `pcbnew`. If they go missing again, re-add at **user** scope
+(`claude mcp add-json --scope user ...`) rather than per project.
+
 ## TODO
 
 - [ ] Cosmetic pass in the GUI: auto-placed reference/value text overlaps net labels
       around J1, J2, R1-R3 and the LEDs. Same issue on the perfboard silkscreen
       (D2's reference sits under J1's outline) - three `silk_overlap` warnings.
-- [ ] Perfboard hole grid: the background via grid the control unit uses for its
-      render trick is **not** added here. Worth doing if the render is going into the
-      dissertation, but it carries the via-collision pain documented in
-      `../control-unit-kicad/CLAUDE.md` - read that first.
+- [x] ~~Perfboard hole grid / render trick~~ - done 2026-08-28 for the **stripboard**
+      build (571 grid holes, netted to the strip they sit on). The plain-perfboard
+      file still has no hole grid; add it the same way if that render is needed.
+- [ ] Tan Veroboard stackup on the stripboard render: blocked from Python (see the
+      stripboard section). Do it in the GUI - Board Setup > Physical Stackup,
+      dielectric `#9E683EFF` Phenolic FR2 1.51mm, both masks `#9E683E00`,
+      copper finish None - then re-render.
 - [x] ~~Manufactured PCB layout~~ - done 2026-08-28. 68 x 58 mm 2-layer, 38 segments
       plus a filled `B.Cu` GND pour, 0 DRC errors / 0 unconnected. Gerbers exported.
 - [ ] Mounting holes are **not** on the fabricated board yet. Decide the M3 chassis
