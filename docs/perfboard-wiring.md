@@ -26,7 +26,7 @@ This matches the orientation of `renders/perfboard-top.png` — view from the
 | J1 console XH6 | col 2, rows 6–11 | pin 1 (GND) at top |
 | J2 encoder 1x05 | col 25, rows 20–24 | **pin 1 at the bottom** (row 24), footprint is rotated 180° |
 | R1, R2 | rows 26 and 19 | 4.7k pull-ups to +3V3 |
-| R4, R5 | rows 23 and 21 | 220R series protection |
+| R4, R5 | rows 23 and 21 | 330R series protection |
 | R7, R8 | rows 15 and 13, cols 3–7 | 1k LED limiters, rotated 180° |
 | D1, D2 | cols 1–2, rows 15 and 13 | pad 1 = cathode = GND |
 | C1, C2 | C1 cols 18–19 row 5, C2 cols 18–20 row 8 | bulk (polarised) and decoupling |

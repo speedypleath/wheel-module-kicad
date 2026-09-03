@@ -143,8 +143,8 @@ Pad 1 sits at the stated hole for every part. **All six resistors stand on end**
 | J2 | 5-pin header | `PinHeader_1x05_P2.54mm_Vertical` | (28,25) | col 28, rows 21–25, **pin 1 at the bottom** |
 | R1 | 4.7k | `R_Axial_..._P2.54mm_Vertical` | (24,24) | col 24, rows 23–24 |
 | R2 | 4.7k | `R_Axial_..._P5.08mm_Vertical` | (22,24) | col 22, rows 22–24 |
-| R4 | 220R | `R_Axial_..._P5.08mm_Vertical` | (20,21) | col 20, rows 21–23 |
-| R5 | 220R | `R_Axial_..._P5.08mm_Vertical` | (18,20) | col 18, rows 20–22 |
+| R4 | 330R | `R_Axial_..._P5.08mm_Vertical` | (20,21) | col 20, rows 21–23 |
+| R5 | 330R | `R_Axial_..._P5.08mm_Vertical` | (18,20) | col 18, rows 20–22 |
 | R7 | 1k | `R_Axial_..._P2.54mm_Vertical` | (2,24) | col 2, rows 24–25 |
 | R8 | 1k | `R_Axial_..._P2.54mm_Vertical` | (2,28) | col 2, rows 27–28 |
 | C1 | 10uF 25V | `wheel-module:CP_Radial_D4.0mm_P2.50mm` | (18,3) | col 18, rows 3–4, **pad 1 = + = row 3** |

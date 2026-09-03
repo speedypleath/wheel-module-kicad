@@ -33,7 +33,7 @@ That gives the safety property this board relies on:
 - `R1`, `R2` (4.7k) pull `ENC_A_RAW` and `ENC_B_RAW` up to **+3V3**.
 - The Pico therefore sees a 0V to 3.3V swing regardless of whether the encoder is run
   from 5V or 12V.
-- `R4`, `R5` (220R) sit in series into the Pico GPIO as fault-current limiters,
+- `R4`, `R5` (330R) sit in series into the Pico GPIO as fault-current limiters,
   protecting the pin if a line is ever accidentally shorted to the encoder supply.
 
 4.7k is comfortable here. With ~2 m of encoder cable at roughly 120 pF/m plus pin and
@@ -148,7 +148,7 @@ guides call this out at the step where it matters.
 | J1 | XH2.54 6-pin console connector | Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical |
 | J2 | 5-pin encoder header | Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical |
 | R1, R2 | 4.7k pull-up to 3.3V | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
-| R4, R5 | 220R series protection | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
+| R4, R5 | 330R series protection | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
 | R7, R8 | 1k LED current limit | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
 | C1 | 10uF 25V bulk on 5V, **polarised** | wheel-module:CP_Radial_D4.0mm_P2.50mm |
 | C2 | 100nF decoupling on 3.3V | Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm |

@@ -1567,7 +1567,7 @@
 				)
 			)
 		)
-		(property "Value" "220R"
+		(property "Value" "330R"
 			(at 5.08 2.37 0)
 			(layer "F.Fab")
 			(uuid "fdca4531-bcad-4993-9282-f07ed071fb5a")
@@ -2323,7 +2323,7 @@
 				)
 			)
 		)
-		(property "Value" "220R"
+		(property "Value" "330R"
 			(at 5.08 2.37 0)
 			(layer "F.Fab")
 			(uuid "9cf756c9-57fd-489f-bc59-6d963a9e6ed1")
