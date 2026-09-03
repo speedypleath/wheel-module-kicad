@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wheel Module Stripboard Guide</title>
+<style>
+:root {
+  --bg:#f3ede2; --surface:#fffdf8; --surface-2:#ece3d3; --ink:#241c15;
+  --muted:#6b5f4f; --border:#d8cbb2; --copper:#b1662f;
+  --power:#a63b2e; --power-bg:#f6e2dd;
+  --gnd:#4a4640;   --gnd-bg:#e6e2da;
+  --i2c:#8a5a17;   --i2c-bg:#f1e2c4;
+  --signal:#235e78;--signal-bg:#dfeaef;
+  --free:#8d8272;  --free-bg:#e9e4da;
+  --hl:#ffd977; --cut:#b03024;
+  --board:#c9a173; --hole:#6d4b28; --spare:#b98f5f;
+  --w-red:#c0392b; --w-blue:#2b6ca3; --w-yellow:#cf9a12; --w-green:#3d8b4a;
+  --shadow:0 1px 2px rgba(36,28,21,.06), 0 8px 24px rgba(36,28,21,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#17130f; --surface:#211a14; --surface-2:#2a2119; --ink:#f1e7d7;
+    --muted:#a6957d; --border:#3c3025; --copper:#e0a868;
+    --power:#e2897b; --power-bg:#3a221e;
+    --gnd:#cfc7b8;  --gnd-bg:#2c2822;
+    --i2c:#e8c37e;  --i2c-bg:#3a2e15;
+    --signal:#8fc4de;--signal-bg:#1c2f37;
+    --free:#8b7f6d; --free-bg:#241d17;
+    --hl:#6a5116; --cut:#e2705f;
+    --board:#6b4b2c; --hole:#241a10; --spare:#7d5a35;
+    --w-red:#e0705f; --w-blue:#6fa8d6; --w-yellow:#e3b445; --w-green:#6bbd78;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#17130f; --surface:#211a14; --surface-2:#2a2119; --ink:#f1e7d7;
+  --muted:#a6957d; --border:#3c3025; --copper:#e0a868;
+  --power:#e2897b; --power-bg:#3a221e;
+  --gnd:#cfc7b8;  --gnd-bg:#2c2822;
+  --i2c:#e8c37e;  --i2c-bg:#3a2e15;
+  --signal:#8fc4de;--signal-bg:#1c2f37;
+  --free:#8b7f6d; --free-bg:#241d17;
+  --hl:#6a5116; --cut:#e2705f;
+  --board:#6b4b2c; --hole:#241a10; --spare:#7d5a35;
+  --w-red:#e0705f; --w-blue:#6fa8d6; --w-yellow:#e3b445; --w-green:#6bbd78;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.35);
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); line-height:1.5;
+  font-family:ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding:0 0 6rem; }
+.wrap { max-width:1080px; margin:0 auto; padding:0 1.5rem; }
+code, .mono { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; }
+code { font-size:.9em; background:var(--surface-2); padding:.05rem .3rem; border-radius:3px; }
+a { color:var(--copper); text-underline-offset:2px; }
+
+header.page-head { padding-top:3rem; padding-bottom:1.75rem; margin-bottom:1.5rem;
+  border-bottom:3px solid var(--copper); display:flex; flex-direction:column; gap:.5rem; }
+.eyebrow { font-family:ui-monospace, monospace; font-size:.72rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--copper); }
+h1 { font-weight:800; font-size:clamp(2rem,5vw,2.7rem); margin:0; text-wrap:balance; }
+.dek { color:var(--muted); font-size:1rem; max-width:68ch; margin:0; }
+h2 { font-weight:700; font-size:1.4rem; margin:0 0 .25rem; scroll-margin-top:5.5rem;
+  text-wrap:balance; }
+h3 { font-weight:600; font-size:1.02rem; margin:0; }
+section { margin-bottom:3rem; scroll-margin-top:4.5rem; }
+.section-intro { color:var(--muted); font-size:.92rem; max-width:68ch; margin:0 0 1.25rem; }
+
+.toolbar { position:sticky; top:0; z-index:20; border-bottom:1px solid var(--border);
+  background:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(8px); }
+.toolbar-in { max-width:1080px; margin:0 auto; padding:.6rem 1.5rem; display:flex;
+  gap:.75rem; align-items:center; flex-wrap:wrap; }
+.toolbar nav { display:flex; gap:.15rem; flex-wrap:wrap; }
+.toolbar nav a { font-size:.78rem; color:var(--muted); text-decoration:none;
+  padding:.25rem .5rem; border-radius:5px; }
+.toolbar nav a:hover, .toolbar nav a:focus-visible { background:var(--surface-2); color:var(--ink); }
+.grow { flex:1 1 auto; }
+#q { font-family:ui-monospace, monospace; font-size:.8rem; padding:.35rem .6rem;
+  min-width:11rem; border:1px solid var(--border); border-radius:6px;
+  background:var(--surface); color:var(--ink); }
+.btn { font-size:.76rem; padding:.3rem .6rem; border:1px solid var(--border);
+  border-radius:6px; background:var(--surface); color:var(--muted); cursor:pointer; }
+.btn:hover { color:var(--ink); }
+:focus-visible { outline:2px solid var(--copper); outline-offset:2px; }
+
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); gap:.6rem;
+  margin-bottom:1.75rem; }
+.stat { background:var(--surface); border:1px solid var(--border); border-radius:8px;
+  box-shadow:var(--shadow); padding:.7rem .85rem; }
+.stat b { display:block; font-family:ui-monospace, monospace; font-size:1.25rem;
+  font-weight:700; font-variant-numeric:tabular-nums; }
+.stat span { font-size:.7rem; color:var(--muted); text-transform:uppercase;
+  letter-spacing:.08em; }
+
+.callout { background:var(--surface); border:1px solid var(--border);
+  border-left:4px solid var(--copper); border-radius:8px; box-shadow:var(--shadow);
+  padding:.9rem 1.1rem; margin-bottom:1.5rem; font-size:.9rem; color:var(--muted); }
+.callout strong { color:var(--ink); }
+.callout.warn { border-left-color:var(--cut); }
+.callout p { margin:.5rem 0 0; }
+.callout p:first-child { margin-top:0; }
+
+/* --- board map --- */
+.map-frame { background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  box-shadow:var(--shadow); padding:1rem; overflow-x:auto; }
+.map-frame svg { display:block; width:100%; min-width:620px; height:auto; }
+.board { fill:var(--board); }
+.hole { fill:var(--hole); opacity:.45; }
+.seg rect { stroke-width:.6; }
+.seg-power  rect { fill:var(--power);  stroke:var(--power);  fill-opacity:.55; }
+.seg-gnd    rect { fill:var(--gnd);    stroke:var(--gnd);    fill-opacity:.5; }
+.seg-i2c    rect { fill:var(--i2c);    stroke:var(--i2c);    fill-opacity:.55; }
+.seg-signal rect { fill:var(--signal); stroke:var(--signal); fill-opacity:.55; }
+.seg-free   rect { fill:var(--spare);  stroke:var(--spare);  fill-opacity:.62; }
+.seg-spare  rect { fill:var(--spare);  stroke:var(--spare);  fill-opacity:.48; }
+.seg:hover rect { fill-opacity:.9; }
+.ruler text { font:9px ui-monospace, monospace; fill:var(--muted); text-anchor:middle;
+  opacity:.65; }
+.ruler .major { fill:var(--ink); opacity:.9; font-weight:700; }
+.ruler .rowtick { text-anchor:end; }
+.cut circle { fill:var(--surface); stroke:var(--cut); stroke-width:.8; }
+.cut path { stroke:var(--cut); stroke-width:2.4; stroke-linecap:round; }
+.link { fill:none; stroke-width:3.4; stroke-linecap:round; stroke-linejoin:round; opacity:.95; }
+.link-red { stroke:var(--w-red); } .link-blue { stroke:var(--w-blue); }
+.link-yellow { stroke:var(--w-yellow); } .link-green { stroke:var(--w-green); }
+.link-tap { stroke-width:2.2; stroke-dasharray:3 3; }
+.part rect { fill:var(--surface); fill-opacity:.82; stroke:var(--ink); stroke-opacity:.55;
+  stroke-width:1.2; }
+.part text { font:700 11px ui-monospace, monospace; fill:var(--ink); text-anchor:middle; }
+svg .dim { opacity:.12; }
+.map-legend { display:flex; flex-wrap:wrap; gap:.45rem; margin-top:.9rem; }
+.chip { font-family:ui-monospace, monospace; font-size:.74rem; padding:.28rem .7rem;
+  border:1px solid var(--border); border-radius:999px; background:var(--surface);
+  color:var(--muted); cursor:pointer; display:inline-flex; align-items:center; gap:.4rem; }
+.chip[aria-pressed="true"] { background:var(--copper); border-color:var(--copper); color:var(--bg); }
+.chip .sw { width:.62rem; height:.62rem; border-radius:2px; flex:none; }
+.sw-power { background:var(--power); } .sw-gnd { background:var(--gnd); }
+.sw-i2c { background:var(--i2c); } .sw-signal { background:var(--signal); }
+.sw-free { background:var(--spare); }
+.sw-red { background:var(--w-red); } .sw-blue { background:var(--w-blue); }
+.sw-yellow { background:var(--w-yellow); } .sw-green { background:var(--w-green); }
+.sw-cut { background:var(--cut); }
+
+/* --- tables --- */
+.tbl-frame { background:var(--surface); border:1px solid var(--border); border-radius:10px;
+  box-shadow:var(--shadow); overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:.82rem; }
+thead th { position:sticky; top:0; background:var(--surface-2); text-align:left;
+  font-size:.7rem; letter-spacing:.07em; text-transform:uppercase; color:var(--muted);
+  padding:.5rem .75rem; border-bottom:1px solid var(--border); white-space:nowrap; }
+tbody td { padding:.4rem .75rem; border-top:1px solid var(--border); vertical-align:top; }
+tbody tr:first-child td { border-top:none; }
+tbody tr:hover { background:var(--surface-2); }
+td.n, th.n { font-family:ui-monospace, monospace; font-variant-numeric:tabular-nums;
+  white-space:nowrap; }
+td.net { font-family:ui-monospace, monospace; font-weight:600; white-space:nowrap; }
+td.net.power { color:var(--power); } td.net.gnd { color:var(--gnd); }
+td.net.i2c { color:var(--i2c); } td.net.signal { color:var(--signal); }
+td.net.free, td.net.spare { color:var(--free); font-weight:400; }
+tr.keep td { background:var(--gnd-bg); }
+tr.isolate td { background:var(--power-bg); }
+tr.dim { opacity:.25; }
+.tag { font-family:ui-monospace, monospace; font-size:.66rem; padding:.05rem .4rem;
+  border-radius:3px; border:1px solid var(--border); color:var(--muted); white-space:nowrap; }
+
+/* --- checklist --- */
+.progress { font-family:ui-monospace, monospace; font-size:.76rem; color:var(--muted);
+  display:flex; align-items:center; gap:.5rem; }
+.progress .bar { width:6rem; height:5px; border-radius:3px; background:var(--surface-2);
+  overflow:hidden; }
+.progress .bar i { display:block; height:100%; width:0; background:var(--copper);
+  transition:width .2s; }
+.steps { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem;
+  counter-reset:step; }
+.steps li { background:var(--surface); border:1px solid var(--border); border-radius:8px;
+  box-shadow:var(--shadow); padding:.7rem .95rem; display:flex; gap:.75rem;
+  align-items:flex-start; font-size:.88rem; }
+.steps li::before { counter-increment:step; content:counter(step);
+  font-family:ui-monospace, monospace; font-size:.7rem; font-weight:700; color:var(--copper);
+  border:1px solid var(--border); border-radius:5px; padding:.1rem .4rem; margin-top:.1rem;
+  flex:none; }
+.steps input { margin-top:.28rem; accent-color:var(--copper); flex:none; }
+.steps li.done { opacity:.5; }
+.steps li.done .step-body { text-decoration:line-through; text-decoration-color:var(--muted); }
+.step-body strong { display:block; }
+.step-body span { color:var(--muted); font-size:.84rem; }
+
+.grid-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(238px,1fr)); gap:.8rem; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:8px;
+  box-shadow:var(--shadow); overflow:hidden; }
+.card .head { display:flex; justify-content:space-between; align-items:baseline; gap:.5rem;
+  padding:.55rem .8rem; background:var(--surface-2); border-bottom:1px solid var(--border); }
+.card .head .ref { font-family:ui-monospace, monospace; font-weight:700; font-size:.9rem; }
+.card .head .val { font-size:.7rem; color:var(--muted); font-family:ui-monospace, monospace; }
+.card .body { padding:.55rem .8rem .7rem; font-size:.78rem; color:var(--muted); }
+.card .body dl { margin:0; display:grid; grid-template-columns:auto 1fr; gap:.15rem .6rem; }
+.card .body dt { color:var(--muted); font-size:.7rem; text-transform:uppercase;
+  letter-spacing:.06em; }
+.card .body dd { margin:0; font-family:ui-monospace, monospace; color:var(--ink);
+  font-size:.76rem; }
+.card .body .fp { margin:.5rem 0 0; font-family:ui-monospace, monospace; font-size:.68rem;
+  line-height:1.35; overflow-wrap:anywhere; color:var(--muted); }
+details.notes { background:var(--surface); border:1px solid var(--border); border-radius:8px;
+  box-shadow:var(--shadow); padding:.75rem 1.1rem; font-size:.88rem; color:var(--muted); }
+details.notes > summary { cursor:pointer; font-weight:600; color:var(--ink); }
+details.notes ul { margin:.7rem 0 0; padding-left:1.1rem; }
+details.notes li { margin-bottom:.4rem; }
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+@media print {
+  .toolbar { display:none; } body { padding-bottom:0; }
+  .card, .steps li, .tbl-frame, .map-frame { break-inside:avoid; box-shadow:none; }
+}
+</style>
+</head>
+<body>
+<div class="toolbar"><div class="toolbar-in"><nav><a href="#map">Map</a><a href="#cuts">Cuts</a><a href="#strips">Strips</a><a href="#parts">Parts</a><a href="#wires">Wires</a><a href="#build">Build</a><a href="#verify">Verified</a></nav><span class="grow"></span><input id="q" type="search" placeholder="filter rows…" aria-label="Filter table rows"><span class="progress"><span class="bar"><i id="pbar"></i></span><span id="pnum">0/0</span></span><button class="btn" id="reset" type="button">Reset</button></div></div>
+<div class="wrap"><header class="page-head"><span class="eyebrow">Haptic Console &middot; Wheel Module (M3) &middot; Veroboard build</span><h1>Stripboard Wiring Guide</h1><p class="dek">Bench reference for the encoder sensor board on continuous-strip Veroboard. Every net, cut and column below is read back out of the built <code>.kicad_pcb</code>, not from intent &mdash; if this page and the board disagree, the board is right.</p></header>
+<div class="stats"><div class="stat"><b>40&times;40</b><span>holes</span></div><div class="stat"><b>104.14</b><span>mm square</span></div><div class="stat"><b>23</b><span>cuts</span></div><div class="stat"><b>13</b><span>parts</span></div><div class="stat"><b>8</b><span>link wires</span></div><div class="stat"><b>63</b><span>strip segments</span></div><div class="stat"><b>1,331</b><span>holes drilled</span></div></div>
+<div class="callout warn"><p><strong>Read this first: a strip is shared by every hole in its row.</strong> On plain perfboard a hole connects to nothing. Here it connects to the whole row, so a pin you never wired still shorts to whatever else sits on its strip. The question is never &ldquo;did I connect the right pads&rdquo; but &ldquo;does anything else sit on this strip&rdquo;.</p><p><b>Row 10 must be cut at column 12.</b> Pico pin&nbsp;8 (GND) is on the left of that row and pin&nbsp;33 (<b>AGND</b>) on the right. AGND is a deliberate no-connect; tying it to GND recreates a <code>power_out</code>/<code>power_out</code> ERC violation and breaks a design invariant.</p><p><b>Rows 5, 15 and 20 are deliberately NOT cut.</b> They carry GND on <i>both</i> sides of the Pico (pins 3/38, 13/28, 18/23), so leaving them whole buys six GND connections and the GND bus for free. Getting this backwards costs either a short or a dozen needless wires.</p></div>
+<section id="map"><h2>Board map</h2><p class="section-intro">Component side, Pico USB at the top &mdash; matching <code>renders/stripboard-top.png</code>. Strips are drawn in the colour of the net they carry; faint bands are strips with only an unused pin on them, or bare spare board. The copper is on the <b>back</b>, so when you flip the board to cut, columns mirror. Hover any strip for its net and the pads on it; use the chips to isolate one net class.</p>
+<div class="map-frame"><svg viewBox="-26 -20 854 848" role="img" aria-label="Board map: 40 by 40 hole Veroboard, strips running left to right">
+<defs><pattern id="holes" x="10" y="10" width="20" height="20" patternUnits="userSpaceOnUse"><circle class="hole" cx="10" cy="10" r="2.3"/></pattern></defs>
+<rect class="board" x="0" y="0" width="820" height="820" rx="6"/>
+<g class="strips">
+<g class="seg seg-spare" data-net="" data-row="1"><title>row 1, cols 1–40 — spare, no net</title><rect x="13.8" y="12.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO0-Pad1)" data-row="2"><title>row 2, cols 1–11 — U1.1 GPIO0 — U1.1</title><rect x="13.8" y="32.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-VBUS-Pad40)" data-row="2"><title>row 2, cols 13–40 — U1.40 VBUS — U1.40</title><rect x="250.0" y="32.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO1-Pad2)" data-row="3"><title>row 3, cols 1–11 — U1.2 GPIO1 — U1.2</title><rect x="13.8" y="52.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-power" data-net="+5V" data-row="3"><title>row 3, cols 13–40 — +5V — U1.39, C1.1</title><rect x="250.0" y="52.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-gnd" data-net="GND" data-row="4"><title>row 4, cols 1–40 — GND — U1.3, U1.38, J1.1, C1.2</title><rect x="13.8" y="72.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(J1-Pin_2-Pad2)" data-row="5"><title>row 5, cols 1–4 — J1.2 Pin_2 — J1.2</title><rect x="13.8" y="92.5" width="76.2" height="15.0" rx="3"/></g>
+<g class="seg seg-signal" data-net="/LNK" data-row="5"><title>row 5, cols 6–11 — /LNK — U1.4</title><rect x="110.0" y="92.5" width="120.0" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-3V3_EN-Pad37)" data-row="5"><title>row 5, cols 13–40 — U1.37 3V3_EN — U1.37</title><rect x="250.0" y="92.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-power" data-net="+5V" data-row="6"><title>row 6, cols 1–4 — +5V — J1.3</title><rect x="13.8" y="112.5" width="76.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO3-Pad5)" data-row="6"><title>row 6, cols 6–11 — U1.5 GPIO3 — U1.5</title><rect x="110.0" y="112.5" width="120.0" height="15.0" rx="3"/></g>
+<g class="seg seg-power" data-net="+3V3" data-row="6"><title>row 6, cols 13–40 — +3V3 — U1.36</title><rect x="250.0" y="112.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-i2c" data-net="/SDA" data-row="7"><title>row 7, cols 1–11 — /SDA — U1.6, J1.4</title><rect x="13.8" y="132.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-ADC_VREF-Pad35)" data-row="7"><title>row 7, cols 13–40 — U1.35 ADC_VREF — U1.35</title><rect x="250.0" y="132.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-i2c" data-net="/SCL" data-row="8"><title>row 8, cols 1–11 — /SCL — U1.7, J1.5</title><rect x="13.8" y="152.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO28_ADC2-Pad34)" data-row="8"><title>row 8, cols 13–40 — U1.34 GPIO28_ADC2 — U1.34</title><rect x="250.0" y="152.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-i2c" data-net="/IRQ" data-row="9"><title>row 9, cols 1–4 — /IRQ — J1.6</title><rect x="13.8" y="172.5" width="76.2" height="15.0" rx="3"/></g>
+<g class="seg seg-gnd" data-net="GND" data-row="9"><title>row 9, cols 6–11 — GND — U1.8</title><rect x="110.0" y="172.5" width="120.0" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-AGND-Pad33)" data-row="9"><title>row 9, cols 13–40 — U1.33 AGND — U1.33</title><rect x="250.0" y="172.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-i2c" data-net="/IRQ" data-row="10"><title>row 10, cols 1–11 — /IRQ — U1.9</title><rect x="13.8" y="192.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO27_ADC1-Pad32)" data-row="10"><title>row 10, cols 13–40 — U1.32 GPIO27_ADC1 — U1.32</title><rect x="250.0" y="192.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO7-Pad10)" data-row="11"><title>row 11, cols 1–11 — U1.10 GPIO7 — U1.10</title><rect x="13.8" y="212.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO26_ADC0-Pad31)" data-row="11"><title>row 11, cols 13–40 — U1.31 GPIO26_ADC0 — U1.31</title><rect x="250.0" y="212.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO8-Pad11)" data-row="12"><title>row 12, cols 1–11 — U1.11 GPIO8 — U1.11</title><rect x="13.8" y="232.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-RUN-Pad30)" data-row="12"><title>row 12, cols 13–40 — U1.30 RUN — U1.30</title><rect x="250.0" y="232.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO9-Pad12)" data-row="13"><title>row 13, cols 1–11 — U1.12 GPIO9 — U1.12</title><rect x="13.8" y="252.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO22-Pad29)" data-row="13"><title>row 13, cols 13–40 — U1.29 GPIO22 — U1.29</title><rect x="250.0" y="252.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-gnd" data-net="GND" data-row="14"><title>row 14, cols 1–40 — GND — U1.13, U1.28</title><rect x="13.8" y="272.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO10-Pad14)" data-row="15"><title>row 15, cols 1–11 — U1.14 GPIO10 — U1.14</title><rect x="13.8" y="292.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO21-Pad27)" data-row="15"><title>row 15, cols 13–40 — U1.27 GPIO21 — U1.27</title><rect x="250.0" y="292.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO11-Pad15)" data-row="16"><title>row 16, cols 1–11 — U1.15 GPIO11 — U1.15</title><rect x="13.8" y="312.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO20-Pad26)" data-row="16"><title>row 16, cols 13–40 — U1.26 GPIO20 — U1.26</title><rect x="250.0" y="312.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO12-Pad16)" data-row="17"><title>row 17, cols 1–11 — U1.16 GPIO12 — U1.16</title><rect x="13.8" y="332.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO19-Pad25)" data-row="17"><title>row 17, cols 13–40 — U1.25 GPIO19 — U1.25</title><rect x="250.0" y="332.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO13-Pad17)" data-row="18"><title>row 18, cols 1–11 — U1.17 GPIO13 — U1.17</title><rect x="13.8" y="352.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO18-Pad24)" data-row="18"><title>row 18, cols 13–40 — U1.24 GPIO18 — U1.24</title><rect x="250.0" y="352.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-gnd" data-net="GND" data-row="19"><title>row 19, cols 1–40 — GND — U1.18, U1.23</title><rect x="13.8" y="372.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO14-Pad19)" data-row="20"><title>row 20, cols 1–11 — U1.19 GPIO14 — U1.19</title><rect x="13.8" y="392.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-signal" data-net="/ENC_B" data-row="20"><title>row 20, cols 13–40 — /ENC_B — U1.22, R5.1</title><rect x="250.0" y="392.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-free" data-net="unconnected-(U1-GPIO15-Pad20)" data-row="21"><title>row 21, cols 1–11 — U1.20 GPIO15 — U1.20</title><rect x="13.8" y="412.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-signal" data-net="/ENC_A" data-row="21"><title>row 21, cols 13–25 — /ENC_A — U1.21, R4.1</title><rect x="250.0" y="412.5" width="260.0" height="15.0" rx="3"/></g>
+<g class="seg seg-gnd" data-net="GND" data-row="21"><title>row 21, cols 27–40 — GND — J2.5</title><rect x="530.0" y="412.5" width="276.2" height="15.0" rx="3"/></g>
+<g class="seg seg-signal" data-net="/ENC_B_RAW" data-row="22"><title>row 22, cols 1–40 — /ENC_B_RAW — R2.2, R5.2, J2.4</title><rect x="13.8" y="432.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-signal" data-net="/ENC_A_RAW" data-row="23"><title>row 23, cols 1–40 — /ENC_A_RAW — R1.2, R4.2, J2.3</title><rect x="13.8" y="452.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-power" data-net="+3V3" data-row="24"><title>row 24, cols 1–26 — +3V3 — C2.1, R2.1, R1.1, R7.1</title><rect x="13.8" y="472.5" width="516.2" height="15.0" rx="3"/></g>
+<g class="seg seg-gnd" data-net="GND" data-row="24"><title>row 24, cols 28–40 — GND — J2.2</title><rect x="550.0" y="472.5" width="256.2" height="15.0" rx="3"/></g>
+<g class="seg seg-signal" data-net="Net-(D1-A)" data-row="25"><title>row 25, cols 1–11 — Net-(D1-A) — D1.2, R7.2</title><rect x="13.8" y="492.5" width="216.2" height="15.0" rx="3"/></g>
+<g class="seg seg-power" data-net="+5V" data-row="25"><title>row 25, cols 13–40 — +5V — J2.1</title><rect x="250.0" y="492.5" width="556.2" height="15.0" rx="3"/></g>
+<g class="seg seg-gnd" data-net="GND" data-row="26"><title>row 26, cols 1–40 — GND — C2.2, D2.1, D1.1</title><rect x="13.8" y="512.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-signal" data-net="Net-(D2-A)" data-row="27"><title>row 27, cols 1–40 — Net-(D2-A) — D2.2, R8.2</title><rect x="13.8" y="532.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-signal" data-net="/LNK" data-row="28"><title>row 28, cols 1–40 — /LNK — R8.1</title><rect x="13.8" y="552.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="29"><title>row 29, cols 1–40 — spare, no net</title><rect x="13.8" y="572.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="30"><title>row 30, cols 1–40 — spare, no net</title><rect x="13.8" y="592.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="31"><title>row 31, cols 1–40 — spare, no net</title><rect x="13.8" y="612.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="32"><title>row 32, cols 1–40 — spare, no net</title><rect x="13.8" y="632.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="33"><title>row 33, cols 1–40 — spare, no net</title><rect x="13.8" y="652.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="34"><title>row 34, cols 1–40 — spare, no net</title><rect x="13.8" y="672.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="35"><title>row 35, cols 1–40 — spare, no net</title><rect x="13.8" y="692.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="36"><title>row 36, cols 1–40 — spare, no net</title><rect x="13.8" y="712.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="37"><title>row 37, cols 1–40 — spare, no net</title><rect x="13.8" y="732.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="38"><title>row 38, cols 1–40 — spare, no net</title><rect x="13.8" y="752.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="39"><title>row 39, cols 1–40 — spare, no net</title><rect x="13.8" y="772.5" width="792.4" height="15.0" rx="3"/></g>
+<g class="seg seg-spare" data-net="" data-row="40"><title>row 40, cols 1–40 — spare, no net</title><rect x="13.8" y="792.5" width="792.4" height="15.0" rx="3"/></g>
+</g>
+<rect class="holefill" x="10.0" y="10.0" width="800" height="800" fill="url(#holes)"/>
+<g class="links">
+<polyline class="link link-red link-wire" data-net="+5V" points="40.0,119.4 30.0,119.4 30.0,30.0 370.0,30.0 370.0,60.0 380.0,60.0"><title>+5V link </title></polyline>
+<polyline class="link link-yellow link-wire" data-net="/IRQ" points="40.0,178.4 50.0,178.4 50.0,200.0 80.0,200.0"><title>/IRQ link </title></polyline>
+<polyline class="link link-red link-wire" data-net="+5V" points="540.0,60.0 550.0,60.0 550.0,500.0 560.0,500.0"><title>+5V link </title></polyline>
+<polyline class="link link-red link-wire" data-net="+3V3" points="360.0,120.0 350.0,120.0 350.0,480.0 360.0,480.0"><title>+3V3 link </title></polyline>
+<polyline class="link link-green link-wire" data-net="/LNK" points="120.0,100.0 130.0,100.0 130.0,560.0 120.0,560.0"><title>/LNK link </title></polyline>
+<polyline class="link link-blue link-wire" data-net="GND" points="140.0,80.0 150.0,80.0 150.0,520.0 140.0,520.0"><title>GND link </title></polyline>
+<polyline class="link link-blue link-tap" data-net="GND" points="140.0,180.0 150.0,180.0"><title>GND link (solder tap on the GND spine)</title></polyline>
+<polyline class="link link-blue link-tap" data-net="GND" points="140.0,280.0 150.0,280.0"><title>GND link (solder tap on the GND spine)</title></polyline>
+<polyline class="link link-blue link-tap" data-net="GND" points="140.0,380.0 150.0,380.0"><title>GND link (solder tap on the GND spine)</title></polyline>
+<polyline class="link link-blue link-wire" data-net="GND" points="540.0,420.0 530.0,420.0 530.0,520.0 540.0,520.0"><title>GND link </title></polyline>
+<polyline class="link link-blue link-wire" data-net="GND" points="560.0,480.0 570.0,480.0 570.0,520.0 560.0,520.0"><title>GND link </title></polyline>
+</g>
+<g class="parts">
+<g class="part" data-ref="C1"><title>C1 — 10uF</title><rect x="344.3" y="54.1" width="31.5" height="31.5" rx="4"/><text x="360.0" y="69.9" dy="0.32em">C1</text></g>
+<g class="part" data-ref="C2"><title>C2 — 100nF</title><rect x="510.2" y="480.0" width="19.7" height="39.4" rx="4"/><text x="520.0" y="499.7" dy="0.32em">C2</text></g>
+<g class="part" data-ref="D1"><title>D1 — PWR Green</title><rect x="65.0" y="495.0" width="29.9" height="26.8" rx="4"/><text x="80.0" y="508.4" dy="0.32em">D1</text></g>
+<g class="part" data-ref="D2"><title>D2 — LNK Red</title><rect x="105.0" y="518.2" width="29.9" height="26.8" rx="4"/><text x="120.0" y="531.6" dy="0.32em">D2</text></g>
+<g class="part" data-ref="J1"><title>J1 — XH2.54-6P Console</title><rect x="13.2" y="60.7" width="45.3" height="137.0" rx="4"/><text x="35.9" y="71.7" dy="0.32em">J1</text></g>
+<g class="part" data-ref="J2"><title>J2 — E38S6G5-600B-G24N AB</title><rect x="550.0" y="410.0" width="20.0" height="100.0" rx="4"/><text x="560.0" y="421.0" dy="0.32em">J2</text></g>
+<g class="part" data-ref="R1"><title>R1 — 4.7k</title><rect x="470.2" y="460.0" width="19.7" height="29.8" rx="4"/><text x="480.0" y="474.9" dy="0.32em">R1</text></g>
+<g class="part" data-ref="R2"><title>R2 — 4.7k</title><rect x="430.2" y="440.0" width="19.7" height="49.8" rx="4"/><text x="440.0" y="464.9" dy="0.32em">R2</text></g>
+<g class="part" data-ref="R4"><title>R4 — 220R</title><rect x="390.2" y="410.2" width="19.7" height="49.8" rx="4"/><text x="400.0" y="435.1" dy="0.32em">R4</text></g>
+<g class="part" data-ref="R5"><title>R5 — 220R</title><rect x="350.2" y="390.2" width="19.7" height="49.8" rx="4"/><text x="360.0" y="415.1" dy="0.32em">R5</text></g>
+<g class="part" data-ref="R7"><title>R7 — 1k</title><rect x="30.2" y="470.2" width="19.7" height="29.8" rx="4"/><text x="40.0" y="485.1" dy="0.32em">R7</text></g>
+<g class="part" data-ref="R8"><title>R8 — 1k</title><rect x="30.2" y="540.0" width="19.7" height="29.8" rx="4"/><text x="40.0" y="554.9" dy="0.32em">R8</text></g>
+<g class="part" data-ref="U1"><title>U1 — RaspberryPi_Pico</title><rect x="167.3" y="29.2" width="165.4" height="401.6" rx="4"/><text x="250.0" y="40.2" dy="0.32em">U1</text></g>
+</g>
+<g class="cuts">
+<g class="cut" data-cut="12,2"><title>cut column 12, row 2</title><circle cx="240" cy="40" r="7"/><path d="M235.0 35.0L245.0 45.0M245.0 35.0L235.0 45.0"/></g>
+<g class="cut" data-cut="12,3"><title>cut column 12, row 3</title><circle cx="240" cy="60" r="7"/><path d="M235.0 55.0L245.0 65.0M245.0 55.0L235.0 65.0"/></g>
+<g class="cut" data-cut="5,5"><title>cut column 5, row 5</title><circle cx="100" cy="100" r="7"/><path d="M95.0 95.0L105.0 105.0M105.0 95.0L95.0 105.0"/></g>
+<g class="cut" data-cut="12,5"><title>cut column 12, row 5</title><circle cx="240" cy="100" r="7"/><path d="M235.0 95.0L245.0 105.0M245.0 95.0L235.0 105.0"/></g>
+<g class="cut" data-cut="5,6"><title>cut column 5, row 6</title><circle cx="100" cy="120" r="7"/><path d="M95.0 115.0L105.0 125.0M105.0 115.0L95.0 125.0"/></g>
+<g class="cut" data-cut="12,6"><title>cut column 12, row 6</title><circle cx="240" cy="120" r="7"/><path d="M235.0 115.0L245.0 125.0M245.0 115.0L235.0 125.0"/></g>
+<g class="cut" data-cut="12,7"><title>cut column 12, row 7</title><circle cx="240" cy="140" r="7"/><path d="M235.0 135.0L245.0 145.0M245.0 135.0L235.0 145.0"/></g>
+<g class="cut" data-cut="12,8"><title>cut column 12, row 8</title><circle cx="240" cy="160" r="7"/><path d="M235.0 155.0L245.0 165.0M245.0 155.0L235.0 165.0"/></g>
+<g class="cut" data-cut="5,9"><title>cut column 5, row 9</title><circle cx="100" cy="180" r="7"/><path d="M95.0 175.0L105.0 185.0M105.0 175.0L95.0 185.0"/></g>
+<g class="cut" data-cut="12,9"><title>cut column 12, row 9</title><circle cx="240" cy="180" r="7"/><path d="M235.0 175.0L245.0 185.0M245.0 175.0L235.0 185.0"/></g>
+<g class="cut" data-cut="12,10"><title>cut column 12, row 10</title><circle cx="240" cy="200" r="7"/><path d="M235.0 195.0L245.0 205.0M245.0 195.0L235.0 205.0"/></g>
+<g class="cut" data-cut="12,11"><title>cut column 12, row 11</title><circle cx="240" cy="220" r="7"/><path d="M235.0 215.0L245.0 225.0M245.0 215.0L235.0 225.0"/></g>
+<g class="cut" data-cut="12,12"><title>cut column 12, row 12</title><circle cx="240" cy="240" r="7"/><path d="M235.0 235.0L245.0 245.0M245.0 235.0L235.0 245.0"/></g>
+<g class="cut" data-cut="12,13"><title>cut column 12, row 13</title><circle cx="240" cy="260" r="7"/><path d="M235.0 255.0L245.0 265.0M245.0 255.0L235.0 265.0"/></g>
+<g class="cut" data-cut="12,15"><title>cut column 12, row 15</title><circle cx="240" cy="300" r="7"/><path d="M235.0 295.0L245.0 305.0M245.0 295.0L235.0 305.0"/></g>
+<g class="cut" data-cut="12,16"><title>cut column 12, row 16</title><circle cx="240" cy="320" r="7"/><path d="M235.0 315.0L245.0 325.0M245.0 315.0L235.0 325.0"/></g>
+<g class="cut" data-cut="12,17"><title>cut column 12, row 17</title><circle cx="240" cy="340" r="7"/><path d="M235.0 335.0L245.0 345.0M245.0 335.0L235.0 345.0"/></g>
+<g class="cut" data-cut="12,18"><title>cut column 12, row 18</title><circle cx="240" cy="360" r="7"/><path d="M235.0 355.0L245.0 365.0M245.0 355.0L235.0 365.0"/></g>
+<g class="cut" data-cut="12,20"><title>cut column 12, row 20</title><circle cx="240" cy="400" r="7"/><path d="M235.0 395.0L245.0 405.0M245.0 395.0L235.0 405.0"/></g>
+<g class="cut" data-cut="12,21"><title>cut column 12, row 21</title><circle cx="240" cy="420" r="7"/><path d="M235.0 415.0L245.0 425.0M245.0 415.0L235.0 425.0"/></g>
+<g class="cut" data-cut="26,21"><title>cut column 26, row 21</title><circle cx="520" cy="420" r="7"/><path d="M515.0 415.0L525.0 425.0M525.0 415.0L515.0 425.0"/></g>
+<g class="cut" data-cut="27,24"><title>cut column 27, row 24</title><circle cx="540" cy="480" r="7"/><path d="M535.0 475.0L545.0 485.0M545.0 475.0L535.0 485.0"/></g>
+<g class="cut" data-cut="12,25"><title>cut column 12, row 25</title><circle cx="240" cy="500" r="7"/><path d="M235.0 495.0L245.0 505.0M245.0 495.0L235.0 505.0"/></g>
+</g>
+<g class="ruler">
+<text class="tick major" x="20" y="-7">1</text>
+<text class="tick" x="40" y="-7">2</text>
+<text class="tick" x="60" y="-7">3</text>
+<text class="tick" x="80" y="-7">4</text>
+<text class="tick major" x="100" y="-7">5</text>
+<text class="tick" x="120" y="-7">6</text>
+<text class="tick" x="140" y="-7">7</text>
+<text class="tick" x="160" y="-7">8</text>
+<text class="tick" x="180" y="-7">9</text>
+<text class="tick major" x="200" y="-7">10</text>
+<text class="tick" x="220" y="-7">11</text>
+<text class="tick" x="240" y="-7">12</text>
+<text class="tick" x="260" y="-7">13</text>
+<text class="tick" x="280" y="-7">14</text>
+<text class="tick major" x="300" y="-7">15</text>
+<text class="tick" x="320" y="-7">16</text>
+<text class="tick" x="340" y="-7">17</text>
+<text class="tick" x="360" y="-7">18</text>
+<text class="tick" x="380" y="-7">19</text>
+<text class="tick major" x="400" y="-7">20</text>
+<text class="tick" x="420" y="-7">21</text>
+<text class="tick" x="440" y="-7">22</text>
+<text class="tick" x="460" y="-7">23</text>
+<text class="tick" x="480" y="-7">24</text>
+<text class="tick major" x="500" y="-7">25</text>
+<text class="tick" x="520" y="-7">26</text>
+<text class="tick" x="540" y="-7">27</text>
+<text class="tick" x="560" y="-7">28</text>
+<text class="tick" x="580" y="-7">29</text>
+<text class="tick major" x="600" y="-7">30</text>
+<text class="tick" x="620" y="-7">31</text>
+<text class="tick" x="640" y="-7">32</text>
+<text class="tick" x="660" y="-7">33</text>
+<text class="tick" x="680" y="-7">34</text>
+<text class="tick major" x="700" y="-7">35</text>
+<text class="tick" x="720" y="-7">36</text>
+<text class="tick" x="740" y="-7">37</text>
+<text class="tick" x="760" y="-7">38</text>
+<text class="tick" x="780" y="-7">39</text>
+<text class="tick major" x="800" y="-7">40</text>
+<text class="tick major rowtick" x="-9" y="20" dy="0.32em">1</text>
+<text class="tick rowtick" x="-9" y="40" dy="0.32em">2</text>
+<text class="tick rowtick" x="-9" y="60" dy="0.32em">3</text>
+<text class="tick rowtick" x="-9" y="80" dy="0.32em">4</text>
+<text class="tick major rowtick" x="-9" y="100" dy="0.32em">5</text>
+<text class="tick rowtick" x="-9" y="120" dy="0.32em">6</text>
+<text class="tick rowtick" x="-9" y="140" dy="0.32em">7</text>
+<text class="tick rowtick" x="-9" y="160" dy="0.32em">8</text>
+<text class="tick rowtick" x="-9" y="180" dy="0.32em">9</text>
+<text class="tick major rowtick" x="-9" y="200" dy="0.32em">10</text>
+<text class="tick rowtick" x="-9" y="220" dy="0.32em">11</text>
+<text class="tick rowtick" x="-9" y="240" dy="0.32em">12</text>
+<text class="tick rowtick" x="-9" y="260" dy="0.32em">13</text>
+<text class="tick rowtick" x="-9" y="280" dy="0.32em">14</text>
+<text class="tick major rowtick" x="-9" y="300" dy="0.32em">15</text>
+<text class="tick rowtick" x="-9" y="320" dy="0.32em">16</text>
+<text class="tick rowtick" x="-9" y="340" dy="0.32em">17</text>
+<text class="tick rowtick" x="-9" y="360" dy="0.32em">18</text>
+<text class="tick rowtick" x="-9" y="380" dy="0.32em">19</text>
+<text class="tick major rowtick" x="-9" y="400" dy="0.32em">20</text>
+<text class="tick rowtick" x="-9" y="420" dy="0.32em">21</text>
+<text class="tick rowtick" x="-9" y="440" dy="0.32em">22</text>
+<text class="tick rowtick" x="-9" y="460" dy="0.32em">23</text>
+<text class="tick rowtick" x="-9" y="480" dy="0.32em">24</text>
+<text class="tick major rowtick" x="-9" y="500" dy="0.32em">25</text>
+<text class="tick rowtick" x="-9" y="520" dy="0.32em">26</text>
+<text class="tick rowtick" x="-9" y="540" dy="0.32em">27</text>
+<text class="tick rowtick" x="-9" y="560" dy="0.32em">28</text>
+<text class="tick rowtick" x="-9" y="580" dy="0.32em">29</text>
+<text class="tick major rowtick" x="-9" y="600" dy="0.32em">30</text>
+<text class="tick rowtick" x="-9" y="620" dy="0.32em">31</text>
+<text class="tick rowtick" x="-9" y="640" dy="0.32em">32</text>
+<text class="tick rowtick" x="-9" y="660" dy="0.32em">33</text>
+<text class="tick rowtick" x="-9" y="680" dy="0.32em">34</text>
+<text class="tick major rowtick" x="-9" y="700" dy="0.32em">35</text>
+<text class="tick rowtick" x="-9" y="720" dy="0.32em">36</text>
+<text class="tick rowtick" x="-9" y="740" dy="0.32em">37</text>
+<text class="tick rowtick" x="-9" y="760" dy="0.32em">38</text>
+<text class="tick rowtick" x="-9" y="780" dy="0.32em">39</text>
+<text class="tick major rowtick" x="-9" y="800" dy="0.32em">40</text>
+</g>
+</svg></div>
+<div class="map-legend" role="group" aria-label="Filter the map by net class"><button class="chip" data-filter="all" aria-pressed="true">all</button><button class="chip" data-filter="power" aria-pressed="false"><i class="sw sw-power"></i>power</button><button class="chip" data-filter="gnd" aria-pressed="false"><i class="sw sw-gnd"></i>GND</button><button class="chip" data-filter="i2c" aria-pressed="false"><i class="sw sw-i2c"></i>SDA / SCL / IRQ</button><button class="chip" data-filter="signal" aria-pressed="false"><i class="sw sw-signal"></i>encoder &amp; LED</button><button class="chip" data-filter="free" aria-pressed="false"><i class="sw sw-free"></i>unused / spare</button><span class="chip" style="cursor:default"><i class="sw sw-cut"></i>&times; = cut</span></div><p class="section-intro" style="margin-top:.9rem">The circuit sits in the top-left, cols&nbsp;1&ndash;28 and rows&nbsp;1&ndash;29. Everything beyond that is spare board &mdash; but not inert: each strip still runs the full 40 columns, so the right-hand end of a row is electrically the same node as the part the circuit uses. Free tie points, and somewhere to keep clear of stray bridges.</p></section>
+<section id="cuts"><h2>Cuts &mdash; 23 of them</h2><p class="section-intro">Cut <b>at the hole</b>, from the copper side; the hole is dead afterwards, which is why no via is modelled there. Each is marked with an <code>X</code> on the back silkscreen. Tick them off as you go &mdash; count them before soldering anything.</p>
+<div class="tbl-frame"><table><thead><tr><th class="n">&#10003;</th><th class="n">Col</th><th class="n">Row</th><th>Why</th></tr></thead><tbody>
+<tr data-search="cut col 5 row 5"><td class="n"><input type="checkbox" data-k="cut-5-5"></td><td class="n">5</td><td class="n">5</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 5 row 6"><td class="n"><input type="checkbox" data-k="cut-5-6"></td><td class="n">5</td><td class="n">6</td><td>Keeps <code>J1.2</code> (hub 3.3&nbsp;V) off the <code>/LNK</code> strip.</td></tr>
+<tr data-search="cut col 5 row 9"><td class="n"><input type="checkbox" data-k="cut-5-9"></td><td class="n">5</td><td class="n">9</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 2"><td class="n"><input type="checkbox" data-k="cut-12-2"></td><td class="n">12</td><td class="n">2</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 3"><td class="n"><input type="checkbox" data-k="cut-12-3"></td><td class="n">12</td><td class="n">3</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 5"><td class="n"><input type="checkbox" data-k="cut-12-5"></td><td class="n">12</td><td class="n">5</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 6"><td class="n"><input type="checkbox" data-k="cut-12-6"></td><td class="n">12</td><td class="n">6</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 7"><td class="n"><input type="checkbox" data-k="cut-12-7"></td><td class="n">12</td><td class="n">7</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 8"><td class="n"><input type="checkbox" data-k="cut-12-8"></td><td class="n">12</td><td class="n">8</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 9"><td class="n"><input type="checkbox" data-k="cut-12-9"></td><td class="n">12</td><td class="n">9</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr class="isolate" data-search="cut col 12 row 10"><td class="n"><input type="checkbox" data-k="cut-12-10"></td><td class="n">12</td><td class="n">10</td><td>Pico pin&nbsp;8 GND on the left, pin&nbsp;33 <b>AGND</b> on the right. Leave this out and AGND ties to GND.  <span class="tag">critical</span></td></tr>
+<tr data-search="cut col 12 row 11"><td class="n"><input type="checkbox" data-k="cut-12-11"></td><td class="n">12</td><td class="n">11</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 12"><td class="n"><input type="checkbox" data-k="cut-12-12"></td><td class="n">12</td><td class="n">12</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 13"><td class="n"><input type="checkbox" data-k="cut-12-13"></td><td class="n">12</td><td class="n">13</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 15"><td class="n"><input type="checkbox" data-k="cut-12-15"></td><td class="n">12</td><td class="n">15</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 16"><td class="n"><input type="checkbox" data-k="cut-12-16"></td><td class="n">12</td><td class="n">16</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 17"><td class="n"><input type="checkbox" data-k="cut-12-17"></td><td class="n">12</td><td class="n">17</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 18"><td class="n"><input type="checkbox" data-k="cut-12-18"></td><td class="n">12</td><td class="n">18</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 20"><td class="n"><input type="checkbox" data-k="cut-12-20"></td><td class="n">12</td><td class="n">20</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 21"><td class="n"><input type="checkbox" data-k="cut-12-21"></td><td class="n">12</td><td class="n">21</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 12 row 25"><td class="n"><input type="checkbox" data-k="cut-12-25"></td><td class="n">12</td><td class="n">25</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 26 row 21"><td class="n"><input type="checkbox" data-k="cut-26-21"></td><td class="n">26</td><td class="n">21</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+<tr data-search="cut col 27 row 24"><td class="n"><input type="checkbox" data-k="cut-27-24"></td><td class="n">27</td><td class="n">24</td><td>Splits the Pico's left pins from its right pins.</td></tr>
+</tbody></table></div>
+<div class="callout"><p><b>Column 12</b> &mdash; Splits the Pico's left pin column from its right one. <b>Not</b> rows 5, 15 or 20 &mdash; those stay whole and become the GND bus.</p><p><b>Column 5</b> &mdash; Isolates <code>J1</code> pins 2, 3 and 6, whose order disagrees with the Pico's.</p><p><b>Column 26</b> &mdash; Isolates <code>J2.5</code> (cable shield GND) from <code>/ENC_A</code>.</p><p><b>Column 27</b> &mdash; Isolates <code>J2.2</code> (encoder GND) from <code>+3V3</code>.</p></div>
+</section>
+<section id="strips"><h2>Strip allocation</h2><p class="section-intro">One row per strip <i>segment</i>. Every segment carries exactly one net &mdash; verified against the saved board by the engine's audit, which aborts the build if a segment ever carries two. Column ranges are inclusive and run to 40, because the strips do.</p>
+<div class="tbl-frame"><table><thead><tr><th class="n">Row</th><th class="n">Cols</th><th>Net</th><th>Pads on it</th></tr></thead><tbody>
+<tr data-net="" data-cls="spare" data-search="row 1  "><td class="n">1</td><td class="n">all</td><td class="net spare">&mdash;</td><td>&mdash;</td></tr>
+<tr data-net="unconnected-(U1-GPIO0-Pad1)" data-cls="free" data-search="row 2 unconnected-(U1-GPIO0-Pad1) U1.1"><td class="n">2</td><td class="n">1&ndash;11</td><td class="net free">U1.1 GPIO0</td><td>U1.1</td></tr>
+<tr data-net="unconnected-(U1-VBUS-Pad40)" data-cls="free" data-search="row 2 unconnected-(U1-VBUS-Pad40) U1.40"><td class="n">2</td><td class="n">13&ndash;40</td><td class="net free">U1.40 VBUS</td><td>U1.40</td></tr>
+<tr data-net="unconnected-(U1-GPIO1-Pad2)" data-cls="free" data-search="row 3 unconnected-(U1-GPIO1-Pad2) U1.2"><td class="n">3</td><td class="n">1&ndash;11</td><td class="net free">U1.2 GPIO1</td><td>U1.2</td></tr>
+<tr data-net="+5V" data-cls="power" data-search="row 3 +5V U1.39, C1.1"><td class="n">3</td><td class="n">13&ndash;40</td><td class="net power">+5V</td><td>U1.39, C1.1</td></tr>
+<tr data-net="GND" data-cls="gnd" data-search="row 4 GND U1.3, U1.38, J1.1, C1.2"><td class="n">4</td><td class="n">all</td><td class="net gnd">GND</td><td>U1.3, U1.38, J1.1, C1.2</td></tr>
+<tr data-net="unconnected-(J1-Pin_2-Pad2)" data-cls="free" data-search="row 5 unconnected-(J1-Pin_2-Pad2) J1.2"><td class="n">5</td><td class="n">1&ndash;4</td><td class="net free">J1.2 Pin_2</td><td>J1.2</td></tr>
+<tr data-net="/LNK" data-cls="signal" data-search="row 5 /LNK U1.4"><td class="n">5</td><td class="n">6&ndash;11</td><td class="net signal">/LNK</td><td>U1.4</td></tr>
+<tr data-net="unconnected-(U1-3V3_EN-Pad37)" data-cls="free" data-search="row 5 unconnected-(U1-3V3_EN-Pad37) U1.37"><td class="n">5</td><td class="n">13&ndash;40</td><td class="net free">U1.37 3V3_EN</td><td>U1.37</td></tr>
+<tr class="isolate" data-net="+5V" data-cls="power" data-search="row 6 +5V J1.3"><td class="n">6</td><td class="n">1&ndash;4</td><td class="net power">+5V</td><td>J1.3 <span class="tag">must stay isolated</span></td></tr>
+<tr data-net="unconnected-(U1-GPIO3-Pad5)" data-cls="free" data-search="row 6 unconnected-(U1-GPIO3-Pad5) U1.5"><td class="n">6</td><td class="n">6&ndash;11</td><td class="net free">U1.5 GPIO3</td><td>U1.5</td></tr>
+<tr data-net="+3V3" data-cls="power" data-search="row 6 +3V3 U1.36"><td class="n">6</td><td class="n">13&ndash;40</td><td class="net power">+3V3</td><td>U1.36</td></tr>
+<tr data-net="/SDA" data-cls="i2c" data-search="row 7 /SDA U1.6, J1.4"><td class="n">7</td><td class="n">1&ndash;11</td><td class="net i2c">/SDA</td><td>U1.6, J1.4</td></tr>
+<tr data-net="unconnected-(U1-ADC_VREF-Pad35)" data-cls="free" data-search="row 7 unconnected-(U1-ADC_VREF-Pad35) U1.35"><td class="n">7</td><td class="n">13&ndash;40</td><td class="net free">U1.35 ADC_VREF</td><td>U1.35</td></tr>
+<tr data-net="/SCL" data-cls="i2c" data-search="row 8 /SCL U1.7, J1.5"><td class="n">8</td><td class="n">1&ndash;11</td><td class="net i2c">/SCL</td><td>U1.7, J1.5</td></tr>
+<tr data-net="unconnected-(U1-GPIO28_ADC2-Pad34)" data-cls="free" data-search="row 8 unconnected-(U1-GPIO28_ADC2-Pad34) U1.34"><td class="n">8</td><td class="n">13&ndash;40</td><td class="net free">U1.34 GPIO28_ADC2</td><td>U1.34</td></tr>
+<tr data-net="/IRQ" data-cls="i2c" data-search="row 9 /IRQ J1.6"><td class="n">9</td><td class="n">1&ndash;4</td><td class="net i2c">/IRQ</td><td>J1.6</td></tr>
+<tr data-net="GND" data-cls="gnd" data-search="row 9 GND U1.8"><td class="n">9</td><td class="n">6&ndash;11</td><td class="net gnd">GND</td><td>U1.8</td></tr>
+<tr data-net="unconnected-(U1-AGND-Pad33)" data-cls="free" data-search="row 9 unconnected-(U1-AGND-Pad33) U1.33"><td class="n">9</td><td class="n">13&ndash;40</td><td class="net free">U1.33 AGND</td><td>U1.33</td></tr>
+<tr data-net="/IRQ" data-cls="i2c" data-search="row 10 /IRQ U1.9"><td class="n">10</td><td class="n">1&ndash;11</td><td class="net i2c">/IRQ</td><td>U1.9</td></tr>
+<tr class="isolate" data-net="unconnected-(U1-GPIO27_ADC1-Pad32)" data-cls="free" data-search="row 10 unconnected-(U1-GPIO27_ADC1-Pad32) U1.32"><td class="n">10</td><td class="n">13&ndash;40</td><td class="net free">U1.32 GPIO27_ADC1</td><td>U1.32 <span class="tag">must stay isolated</span></td></tr>
+<tr data-net="unconnected-(U1-GPIO7-Pad10)" data-cls="free" data-search="row 11 unconnected-(U1-GPIO7-Pad10) U1.10"><td class="n">11</td><td class="n">1&ndash;11</td><td class="net free">U1.10 GPIO7</td><td>U1.10</td></tr>
+<tr data-net="unconnected-(U1-GPIO26_ADC0-Pad31)" data-cls="free" data-search="row 11 unconnected-(U1-GPIO26_ADC0-Pad31) U1.31"><td class="n">11</td><td class="n">13&ndash;40</td><td class="net free">U1.31 GPIO26_ADC0</td><td>U1.31</td></tr>
+<tr data-net="unconnected-(U1-GPIO8-Pad11)" data-cls="free" data-search="row 12 unconnected-(U1-GPIO8-Pad11) U1.11"><td class="n">12</td><td class="n">1&ndash;11</td><td class="net free">U1.11 GPIO8</td><td>U1.11</td></tr>
+<tr data-net="unconnected-(U1-RUN-Pad30)" data-cls="free" data-search="row 12 unconnected-(U1-RUN-Pad30) U1.30"><td class="n">12</td><td class="n">13&ndash;40</td><td class="net free">U1.30 RUN</td><td>U1.30</td></tr>
+<tr data-net="unconnected-(U1-GPIO9-Pad12)" data-cls="free" data-search="row 13 unconnected-(U1-GPIO9-Pad12) U1.12"><td class="n">13</td><td class="n">1&ndash;11</td><td class="net free">U1.12 GPIO9</td><td>U1.12</td></tr>
+<tr data-net="unconnected-(U1-GPIO22-Pad29)" data-cls="free" data-search="row 13 unconnected-(U1-GPIO22-Pad29) U1.29"><td class="n">13</td><td class="n">13&ndash;40</td><td class="net free">U1.29 GPIO22</td><td>U1.29</td></tr>
+<tr data-net="GND" data-cls="gnd" data-search="row 14 GND U1.13, U1.28"><td class="n">14</td><td class="n">all</td><td class="net gnd">GND</td><td>U1.13, U1.28</td></tr>
+<tr data-net="unconnected-(U1-GPIO10-Pad14)" data-cls="free" data-search="row 15 unconnected-(U1-GPIO10-Pad14) U1.14"><td class="n">15</td><td class="n">1&ndash;11</td><td class="net free">U1.14 GPIO10</td><td>U1.14</td></tr>
+<tr data-net="unconnected-(U1-GPIO21-Pad27)" data-cls="free" data-search="row 15 unconnected-(U1-GPIO21-Pad27) U1.27"><td class="n">15</td><td class="n">13&ndash;40</td><td class="net free">U1.27 GPIO21</td><td>U1.27</td></tr>
+<tr data-net="unconnected-(U1-GPIO11-Pad15)" data-cls="free" data-search="row 16 unconnected-(U1-GPIO11-Pad15) U1.15"><td class="n">16</td><td class="n">1&ndash;11</td><td class="net free">U1.15 GPIO11</td><td>U1.15</td></tr>
+<tr data-net="unconnected-(U1-GPIO20-Pad26)" data-cls="free" data-search="row 16 unconnected-(U1-GPIO20-Pad26) U1.26"><td class="n">16</td><td class="n">13&ndash;40</td><td class="net free">U1.26 GPIO20</td><td>U1.26</td></tr>
+<tr data-net="unconnected-(U1-GPIO12-Pad16)" data-cls="free" data-search="row 17 unconnected-(U1-GPIO12-Pad16) U1.16"><td class="n">17</td><td class="n">1&ndash;11</td><td class="net free">U1.16 GPIO12</td><td>U1.16</td></tr>
+<tr data-net="unconnected-(U1-GPIO19-Pad25)" data-cls="free" data-search="row 17 unconnected-(U1-GPIO19-Pad25) U1.25"><td class="n">17</td><td class="n">13&ndash;40</td><td class="net free">U1.25 GPIO19</td><td>U1.25</td></tr>
+<tr data-net="unconnected-(U1-GPIO13-Pad17)" data-cls="free" data-search="row 18 unconnected-(U1-GPIO13-Pad17) U1.17"><td class="n">18</td><td class="n">1&ndash;11</td><td class="net free">U1.17 GPIO13</td><td>U1.17</td></tr>
+<tr data-net="unconnected-(U1-GPIO18-Pad24)" data-cls="free" data-search="row 18 unconnected-(U1-GPIO18-Pad24) U1.24"><td class="n">18</td><td class="n">13&ndash;40</td><td class="net free">U1.24 GPIO18</td><td>U1.24</td></tr>
+<tr data-net="GND" data-cls="gnd" data-search="row 19 GND U1.18, U1.23"><td class="n">19</td><td class="n">all</td><td class="net gnd">GND</td><td>U1.18, U1.23</td></tr>
+<tr data-net="unconnected-(U1-GPIO14-Pad19)" data-cls="free" data-search="row 20 unconnected-(U1-GPIO14-Pad19) U1.19"><td class="n">20</td><td class="n">1&ndash;11</td><td class="net free">U1.19 GPIO14</td><td>U1.19</td></tr>
+<tr data-net="/ENC_B" data-cls="signal" data-search="row 20 /ENC_B U1.22, R5.1"><td class="n">20</td><td class="n">13&ndash;40</td><td class="net signal">/ENC_B</td><td>U1.22, R5.1</td></tr>
+<tr data-net="unconnected-(U1-GPIO15-Pad20)" data-cls="free" data-search="row 21 unconnected-(U1-GPIO15-Pad20) U1.20"><td class="n">21</td><td class="n">1&ndash;11</td><td class="net free">U1.20 GPIO15</td><td>U1.20</td></tr>
+<tr data-net="/ENC_A" data-cls="signal" data-search="row 21 /ENC_A U1.21, R4.1"><td class="n">21</td><td class="n">13&ndash;25</td><td class="net signal">/ENC_A</td><td>U1.21, R4.1</td></tr>
+<tr data-net="GND" data-cls="gnd" data-search="row 21 GND J2.5"><td class="n">21</td><td class="n">27&ndash;40</td><td class="net gnd">GND</td><td>J2.5</td></tr>
+<tr data-net="/ENC_B_RAW" data-cls="signal" data-search="row 22 /ENC_B_RAW R2.2, R5.2, J2.4"><td class="n">22</td><td class="n">all</td><td class="net signal">/ENC_B_RAW</td><td>R2.2, R5.2, J2.4</td></tr>
+<tr data-net="/ENC_A_RAW" data-cls="signal" data-search="row 23 /ENC_A_RAW R1.2, R4.2, J2.3"><td class="n">23</td><td class="n">all</td><td class="net signal">/ENC_A_RAW</td><td>R1.2, R4.2, J2.3</td></tr>
+<tr data-net="+3V3" data-cls="power" data-search="row 24 +3V3 C2.1, R2.1, R1.1, R7.1"><td class="n">24</td><td class="n">1&ndash;26</td><td class="net power">+3V3</td><td>C2.1, R2.1, R1.1, R7.1</td></tr>
+<tr data-net="GND" data-cls="gnd" data-search="row 24 GND J2.2"><td class="n">24</td><td class="n">28&ndash;40</td><td class="net gnd">GND</td><td>J2.2</td></tr>
+<tr data-net="Net-(D1-A)" data-cls="signal" data-search="row 25 Net-(D1-A) D1.2, R7.2"><td class="n">25</td><td class="n">1&ndash;11</td><td class="net signal">Net-(D1-A)</td><td>D1.2, R7.2</td></tr>
+<tr data-net="+5V" data-cls="power" data-search="row 25 +5V J2.1"><td class="n">25</td><td class="n">13&ndash;40</td><td class="net power">+5V</td><td>J2.1</td></tr>
+<tr data-net="GND" data-cls="gnd" data-search="row 26 GND C2.2, D2.1, D1.1"><td class="n">26</td><td class="n">all</td><td class="net gnd">GND</td><td>C2.2, D2.1, D1.1</td></tr>
+<tr data-net="Net-(D2-A)" data-cls="signal" data-search="row 27 Net-(D2-A) D2.2, R8.2"><td class="n">27</td><td class="n">all</td><td class="net signal">Net-(D2-A)</td><td>D2.2, R8.2</td></tr>
+<tr data-net="/LNK" data-cls="signal" data-search="row 28 /LNK R8.1"><td class="n">28</td><td class="n">all</td><td class="net signal">/LNK</td><td>R8.1</td></tr>
+<tr data-net="" data-cls="spare" data-search="row 29  "><td class="n">29</td><td class="n">all</td><td class="net spare">&mdash;</td><td>&mdash;</td></tr>
+<tr data-net="" data-cls="spare" data-search="spare board rows 30-40"><td class="n">30&ndash;40</td><td class="n">all</td><td class="net spare">&mdash;</td><td>spare board</td></tr>
+</tbody></table></div></section>
+<section id="parts"><h2>Placement</h2><p class="section-intro">Pad&nbsp;1 sits at the stated hole for every part &mdash; every footprint in this project has pad&nbsp;1 at its origin, which is what makes grid placement exact. <b>All six resistors stand on end.</b> That is the Veroboard idiom, and it is what stops them shorting along a strip.</p><div class="grid-cards">
+<div class="card" data-search="C1 10uF CP_Radial_D4.0mm_P2.50mm"><div class="head"><span class="ref">C1</span><span class="val">10uF</span></div><div class="body"><dl><dt>pad 1</dt><dd>(18,&thinsp;3)</dd><dt>spans</dt><dd>col 18, rows 3&ndash;4</dd><dt>pins</dt><dd>2</dd><dt>polarity</dt><dd>pad&nbsp;1 = <b>+</b> (the square pad)</dd></dl><p class="fp">CP_Radial_D4.0mm_P2.50mm</p></div></div>
+<div class="card" data-search="C2 100nF C_Disc_D5.0mm_W2.5mm_P5.00mm"><div class="head"><span class="ref">C2</span><span class="val">100nF</span></div><div class="body"><dl><dt>pad 1</dt><dd>(26,&thinsp;24)</dd><dt>spans</dt><dd>col 26, rows 24&ndash;26</dd><dt>pins</dt><dd>2</dd></dl><p class="fp">C_Disc_D5.0mm_W2.5mm_P5.00mm</p></div></div>
+<div class="card" data-search="D1 PWR Green LED_THT:LED_D3.0mm"><div class="head"><span class="ref">D1</span><span class="val">PWR Green</span></div><div class="body"><dl><dt>pad 1</dt><dd>(4,&thinsp;26)</dd><dt>spans</dt><dd>col 4, rows 25&ndash;26</dd><dt>pins</dt><dd>2</dd><dt>polarity</dt><dd>pad&nbsp;1 = <b>cathode</b> (K, the flat)</dd></dl><p class="fp">LED_D3.0mm</p></div></div>
+<div class="card" data-search="D2 LNK Red LED_THT:LED_D3.0mm"><div class="head"><span class="ref">D2</span><span class="val">LNK Red</span></div><div class="body"><dl><dt>pad 1</dt><dd>(6,&thinsp;26)</dd><dt>spans</dt><dd>col 6, rows 26&ndash;27</dd><dt>pins</dt><dd>2</dd><dt>polarity</dt><dd>pad&nbsp;1 = <b>cathode</b> (K, the flat)</dd></dl><p class="fp">LED_D3.0mm</p></div></div>
+<div class="card" data-search="J1 XH2.54-6P Console Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical"><div class="head"><span class="ref">J1</span><span class="val">XH2.54-6P Console</span></div><div class="body"><dl><dt>pad 1</dt><dd>(2,&thinsp;4)</dd><dt>spans</dt><dd>col 2, rows 4&ndash;9</dd><dt>pins</dt><dd>6</dd></dl><p class="fp">JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical</p></div></div>
+<div class="card" data-search="J2 E38S6G5-600B-G24N AB Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical"><div class="head"><span class="ref">J2</span><span class="val">E38S6G5-600B-G24N AB</span></div><div class="body"><dl><dt>pad 1</dt><dd>(28,&thinsp;25)</dd><dt>spans</dt><dd>col 28, rows 21&ndash;25</dd><dt>pins</dt><dd>5</dd></dl><p class="fp">PinHeader_1x05_P2.54mm_Vertical</p></div></div>
+<div class="card" data-search="R1 4.7k R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical"><div class="head"><span class="ref">R1</span><span class="val">4.7k</span></div><div class="body"><dl><dt>pad 1</dt><dd>(24,&thinsp;24)</dd><dt>spans</dt><dd>col 24, rows 23&ndash;24</dd><dt>pins</dt><dd>2</dd></dl><p class="fp">R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical</p></div></div>
+<div class="card" data-search="R2 4.7k R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical"><div class="head"><span class="ref">R2</span><span class="val">4.7k</span></div><div class="body"><dl><dt>pad 1</dt><dd>(22,&thinsp;24)</dd><dt>spans</dt><dd>col 22, rows 22&ndash;24</dd><dt>pins</dt><dd>2</dd></dl><p class="fp">R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical</p></div></div>
+<div class="card" data-search="R4 220R R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical"><div class="head"><span class="ref">R4</span><span class="val">220R</span></div><div class="body"><dl><dt>pad 1</dt><dd>(20,&thinsp;21)</dd><dt>spans</dt><dd>col 20, rows 21&ndash;23</dd><dt>pins</dt><dd>2</dd></dl><p class="fp">R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical</p></div></div>
+<div class="card" data-search="R5 220R R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical"><div class="head"><span class="ref">R5</span><span class="val">220R</span></div><div class="body"><dl><dt>pad 1</dt><dd>(18,&thinsp;20)</dd><dt>spans</dt><dd>col 18, rows 20&ndash;22</dd><dt>pins</dt><dd>2</dd></dl><p class="fp">R_Axial_DIN0207_L6.3mm_D2.5mm_P5.08mm_Vertical</p></div></div>
+<div class="card" data-search="R7 1k R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical"><div class="head"><span class="ref">R7</span><span class="val">1k</span></div><div class="body"><dl><dt>pad 1</dt><dd>(2,&thinsp;24)</dd><dt>spans</dt><dd>col 2, rows 24&ndash;25</dd><dt>pins</dt><dd>2</dd></dl><p class="fp">R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical</p></div></div>
+<div class="card" data-search="R8 1k R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical"><div class="head"><span class="ref">R8</span><span class="val">1k</span></div><div class="body"><dl><dt>pad 1</dt><dd>(2,&thinsp;28)</dd><dt>spans</dt><dd>col 2, rows 27&ndash;28</dd><dt>pins</dt><dd>2</dd></dl><p class="fp">R_Axial_DIN0207_L6.3mm_D2.5mm_P2.54mm_Vertical</p></div></div>
+<div class="card" data-search="U1 RaspberryPi_Pico Module:RaspberryPi_Pico_Common_THT"><div class="head"><span class="ref">U1</span><span class="val">RaspberryPi_Pico</span></div><div class="body"><dl><dt>pad 1</dt><dd>(9,&thinsp;2)</dd><dt>spans</dt><dd>cols 9 &amp; 16, rows 2&ndash;21</dd><dt>pins</dt><dd>40</dd></dl><p class="fp">RaspberryPi_Pico_Common_THT</p></div></div>
+</div><div class="callout"><p><b>Three parts are slightly off-grid, and that is fine &mdash; the leads bend.</b> <code>J1</code> is a 2.50&nbsp;mm connector on a 2.54&nbsp;mm grid, so pin&nbsp;6 lands 0.2&nbsp;mm above row&nbsp;10, cumulative over six pins; its pins are 0.6&nbsp;mm in 1.0&nbsp;mm holes. <code>C1</code> (2.50&nbsp;mm) and <code>C2</code> (5.00&nbsp;mm) are 0.04&nbsp;mm and 0.08&nbsp;mm out.</p><p><b>R4 and R5 are the nicest part of this layout.</b> They reach straight from the Pico's <code>/ENC_A</code> and <code>/ENC_B</code> pins down to the <code>_RAW</code> rows with no link wire at all, so the two noise-sensitive nets are pure copper.</p></div></section>
+<section id="wires"><h2>Link wires &mdash; 8 of them</h2><p class="section-intro">Insulated wire on the <b>solder side</b>, hole to hole. The component side is crowded &mdash; the Pico spans twenty rows and <code>J1</code>, <code>J2</code> and the LEDs sit on the very edges the long links follow &mdash; so wires there would lie across component bodies. The back is flat: insulated wire over a copper strip touches nothing. Colours follow the console convention, so a net is the same colour on every board in the build: <b>red</b> power, <b>blue</b> GND (the kit has no black), <b>yellow</b> the I&sup2;C/IRQ bus, <b>green</b> <code>/LNK</code>.</p>
+<div class="tbl-frame"><table><thead><tr><th class="n">#</th><th>Net</th><th class="n">Colour</th><th class="n">From</th><th class="n">To</th><th>Purpose</th></tr></thead><tbody>
+<tr data-net="+5V" data-cls="power" data-search="wire 1 +5V red"><td class="n">1</td><td class="net power">+5V</td><td class="n"><i class="sw sw-red" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i>red</td><td class="n">(2,&thinsp;6)</td><td class="n">(19,&thinsp;3)</td><td>Console 5&nbsp;V from J1 up to the top rail.</td></tr>
+<tr data-net="/IRQ" data-cls="i2c" data-search="wire 2 /IRQ yellow"><td class="n">2</td><td class="net i2c">/IRQ</td><td class="n"><i class="sw sw-yellow" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i>yellow</td><td class="n">(2,&thinsp;9)</td><td class="n">(4,&thinsp;10)</td><td>J1's IRQ pin down to the Pico's GP6.</td></tr>
+<tr data-net="+5V" data-cls="power" data-search="wire 3 +5V red"><td class="n">3</td><td class="net power">+5V</td><td class="n"><i class="sw sw-red" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i>red</td><td class="n">(27,&thinsp;3)</td><td class="n">(28,&thinsp;25)</td><td>Pico VSYS out to the 5&nbsp;V rail.</td></tr>
+<tr data-net="+3V3" data-cls="power" data-search="wire 4 +3V3 red"><td class="n">4</td><td class="net power">+3V3</td><td class="n"><i class="sw sw-red" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i>red</td><td class="n">(18,&thinsp;6)</td><td class="n">(18,&thinsp;24)</td><td>5&nbsp;V rail down to the encoder connector.</td></tr>
+<tr data-net="/LNK" data-cls="signal" data-search="wire 5 /LNK green"><td class="n">5</td><td class="net signal">/LNK</td><td class="n"><i class="sw sw-green" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i>green</td><td class="n">(6,&thinsp;5)</td><td class="n">(6,&thinsp;28)</td><td>Pico 3V3 output across to the pull-up rail.</td></tr>
+<tr data-net="GND" data-cls="gnd" data-search="wire 6 GND blue"><td class="n">6</td><td class="net gnd">GND</td><td class="n"><i class="sw sw-blue" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i>blue</td><td class="n">(7,&thinsp;4)</td><td class="n">(7,&thinsp;26)</td><td>Pico GP2 down to the link-LED resistor.</td></tr>
+<tr data-net="GND" data-cls="gnd" data-search="wire 7 GND blue"><td class="n">7</td><td class="net gnd">GND</td><td class="n"><i class="sw sw-blue" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i>blue</td><td class="n">(27,&thinsp;21)</td><td class="n">(27,&thinsp;26)</td><td>&mdash; tap at row&nbsp;20</td></tr>
+<tr data-net="GND" data-cls="gnd" data-search="wire 8 GND blue"><td class="n">8</td><td class="net gnd">GND</td><td class="n"><i class="sw sw-blue" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i>blue</td><td class="n">(28,&thinsp;24)</td><td class="n">(28,&thinsp;26)</td><td><code>J2.5</code> cable shield to GND.</td></tr>
+</tbody></table></div>
+<div class="callout"><p><b>Wire 7 is one length soldered at five holes</b> &mdash; rows 5, 10, 15, 20 and 27. Those three intermediate joints are what tie the Pico's GND rows into one bus; skip any of them and that row floats. The board file models them as three extra zero-length links, which is why the netlist counts twelve links and this table nine wires. They show on the map as dashed stubs.</p></div></section>
+<section id="build"><h2>Build order</h2><p class="section-intro">The link wires go on the <i>solder</i> side, which inverts the usual perfboard order: wires last, after the parts, not before them.</p><ol class="steps">
+<li data-search="Make all 23 cuts, before any part goes in"><input type="checkbox" data-k="step-1" aria-label="Make all 23 cuts, before any part goes in"><span class="step-body"><strong>Make all 23 cuts, before any part goes in</strong><span>Spot-face cutter or a 3&nbsp;mm drill twisted by hand, from the copper side. Meter every one across the gap &mdash; a partial cut is the hardest fault to find later.</span></span></li>
+<li data-search="Fit the Pico on female headers, not soldered down"><input type="checkbox" data-k="step-2" aria-label="Fit the Pico on female headers, not soldered down"><span class="step-body"><strong>Fit the Pico on female headers, not soldered down</strong><span>Two GND strips and the whole cut column run underneath it.</span></span></li>
+<li data-search="Resistors, all six standing on end"><input type="checkbox" data-k="step-3" aria-label="Resistors, all six standing on end"><span class="step-body"><strong>Resistors, all six standing on end</strong><span>Lying flat would put both leads on one strip and short the part out.</span></span></li>
+<li data-search="LEDs &amp;mdash; pad 1 is the cathode, and goes to row 27"><input type="checkbox" data-k="step-4" aria-label="LEDs &amp;mdash; pad 1 is the cathode, and goes to row 27"><span class="step-body"><strong>LEDs &mdash; pad 1 is the cathode, and goes to row 27</strong><span>True for both D1 and D2. Check before soldering; they are the parts you cannot easily lift.</span></span></li>
+<li data-search="Capacitors &amp;mdash; C1 is polarised, C2 is not"><input type="checkbox" data-k="step-5" aria-label="Capacitors &amp;mdash; C1 is polarised, C2 is not"><span class="step-body"><strong>Capacitors &mdash; <b>C1 is polarised, C2 is not</b></strong><span>C1 is the 10&nbsp;µF 25&nbsp;V electrolytic across the 5&nbsp;V rail at rows 3&ndash;4: its <b>+ lead (pad&nbsp;1, the square pad) goes to row&nbsp;3</b> and the striped &minus; lead to the row-4 GND strip. Fitted backwards it can vent. C2 is a 100&nbsp;nF ceramic across 3V3 at rows 24&ndash;26 and goes in either way round.</span></span></li>
+<li data-search="J1 and J2"><input type="checkbox" data-k="step-6" aria-label="J1 and J2"><span class="step-body"><strong>J1 and J2</strong><span>J1 is a 2.50&nbsp;mm connector on a 2.54&nbsp;mm grid; the drift is 0.2&nbsp;mm by pin 6 and the pins bend to suit.</span></span></li>
+<li data-search="Link wires last, on the solder side"><input type="checkbox" data-k="step-7" aria-label="Link wires last, on the solder side"><span class="step-body"><strong>Link wires last, on the solder side</strong><span>They follow the parts rather than preceding them. Strip and tin both ends first.</span></span></li>
+<li data-search="Meter before power-up: +5V&amp;ndash;GND open, +3V3&amp;ndash;GND open"><input type="checkbox" data-k="step-8" aria-label="Meter before power-up: +5V&amp;ndash;GND open, +3V3&amp;ndash;GND open"><span class="step-body"><strong>Meter before power-up: +5V&ndash;GND open, +3V3&ndash;GND open</strong><span>And <b>U1.33 (AGND) isolated from GND</b> &mdash; the specific thing the row-10 cut exists to guarantee.</span></span></li>
+</ol></section>
+<section id="verify"><h2>Verification state</h2><p class="section-intro">What the tools say about the board this page describes.</p><div class="grid-cards"><div class="card"><div class="head"><span class="ref">DRC</span><span class="val">kicad-cli</span></div><div class="body"><b style="color:var(--ink)">0 errors, 0 unconnected pads, 0 footprint errors.</b><p style="margin:.4rem 0 0">Check with <code>--severity-error</code>.</p></div></div><div class="card"><div class="head"><span class="ref">Strip audit</span><span class="val">engine stage 4</span></div><div class="body"><b style="color:var(--ink)">Clean.</b><p style="margin:.4rem 0 0">Every segment carries exactly one net, and both isolation invariants hold: <code>U1.33</code> AGND and <code>J1.2</code> each alone on their segment.</p></div></div><div class="card"><div class="head"><span class="ref">Warnings</span><span class="val">240, expected</span></div><div class="body">199 <code>via_dangling</code>, 38 <code>track_dangling</code>, 3 inherited <code>lib_footprint_mismatch</code>. Dangling is inherent to modelling perfboard holes as vias, and bare strips really are unconnected copper. Do not chase them.</div></div></div></section>
+<section><h2>Notes</h2><details class="notes"><summary>Why the board is this size, and what is generated from what</summary><ul><li>The grid matches the stock the board is actually built on: a 40&nbsp;&times;&nbsp;40 hole Veroboard, 104.14&nbsp;mm square, uncut. The circuit was laid out inside 28&nbsp;&times;&nbsp;30 and has not moved; the extra columns and rows are spare.</li><li>The board is <b>generated, not hand-built</b>. <code>scripts/layout.py</code> is pure data; the engine that turns it into copper lives in <code>~/KiCad/kicad-stripboard</code>. Rebuild it, do not patch it.</li><li>This page is generated too, by <code>scripts/wiring_guide.py</code>, from the layout spec plus a read-back of the built board. Re-run it after any rebuild.</li><li>Renders are green FR4 rather than tan phenolic: the stackup API is not reachable from pcbnew here, so the Veroboard colour is a GUI job (Board Setup &rsaquo; Physical Stackup).</li><li>This is the Veroboard build. <code>docs/perfboard-wiring.md</code> covers a different, point-to-point board on plain perfboard. They are not interchangeable &mdash; pick one.</li></ul></details></section>
+</div>
+<script>
+(function () {
+  "use strict";
+  var KEY = "wheel-stripboard-progress";
+  var boxes = Array.prototype.slice.call(document.querySelectorAll("input[type=checkbox][data-k]"));
+  var bar = document.getElementById("pbar"), num = document.getElementById("pnum");
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { return {}; }
+  }
+  function save(state) {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
+  }
+  function paint() {
+    var done = 0;
+    boxes.forEach(function (b) {
+      if (b.checked) done++;
+      var li = b.closest("li");
+      if (li) li.classList.toggle("done", b.checked);
+    });
+    num.textContent = done + "/" + boxes.length;
+    bar.style.width = boxes.length ? (100 * done / boxes.length) + "%" : "0";
+  }
+  var state = load();
+  boxes.forEach(function (b) {
+    b.checked = !!state[b.dataset.k];
+    b.addEventListener("change", function () {
+      state[b.dataset.k] = b.checked; save(state); paint();
+    });
+  });
+  paint();
+  document.getElementById("reset").addEventListener("click", function () {
+    state = {}; save(state); boxes.forEach(function (b) { b.checked = false; }); paint();
+  });
+
+  // --- net-class filter: dims the map and the tables together -----------------
+  var chips = Array.prototype.slice.call(document.querySelectorAll(".chip[data-filter]"));
+  var segs = Array.prototype.slice.call(document.querySelectorAll("svg .seg"));
+  var links = Array.prototype.slice.call(document.querySelectorAll("svg .link"));
+  var netCls = {};
+  segs.forEach(function (g) {
+    var m = /seg-(\w+)/.exec(g.getAttribute("class"));
+    netCls[g.dataset.net] = m ? m[1] : "spare";
+  });
+  function applyFilter(f) {
+    segs.forEach(function (g) {
+      var m = /seg-(\w+)/.exec(g.getAttribute("class"));
+      g.classList.toggle("dim", f !== "all" && (!m || m[1] !== f));
+    });
+    links.forEach(function (p) {
+      p.classList.toggle("dim", f !== "all" && netCls[p.dataset.net] !== f);
+    });
+    document.querySelectorAll("tr[data-cls]").forEach(function (tr) {
+      tr.classList.toggle("dim", f !== "all" && tr.dataset.cls !== f);
+    });
+    chips.forEach(function (c) {
+      c.setAttribute("aria-pressed", String(c.dataset.filter === f));
+    });
+  }
+  chips.forEach(function (c) {
+    c.addEventListener("click", function () {
+      applyFilter(c.getAttribute("aria-pressed") === "true" ? "all" : c.dataset.filter);
+    });
+  });
+
+  // --- text filter over every table row and part card -------------------------
+  var q = document.getElementById("q");
+  var rows = Array.prototype.slice.call(document.querySelectorAll("tr[data-search], li[data-search], .card[data-search]"));
+  q.addEventListener("input", function () {
+    var t = q.value.trim().toLowerCase();
+    rows.forEach(function (el) {
+      var hay = (el.dataset.search + " " + el.textContent).toLowerCase();
+      el.style.display = (!t || hay.indexOf(t) !== -1) ? "" : "none";
+    });
+  });
+})();
+</script>
+</body>
+</html>

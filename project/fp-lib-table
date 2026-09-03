@@ -6,4 +6,5 @@
   (lib (name "Capacitor_THT")(type "KiCad")(uri "${KICAD_FOOTPRINT_DIR}/Capacitor_THT.pretty")(options "")(descr "THT capacitors"))
   (lib (name "LED_THT")(type "KiCad")(uri "${KICAD_FOOTPRINT_DIR}/LED_THT.pretty")(options "")(descr "THT LEDs"))
   (lib (name "Module")(type "KiCad")(uri "${KICAD_FOOTPRINT_DIR}/Module.pretty")(options "")(descr "MCU modules incl. Raspberry Pi Pico"))
+  (lib (name "wheel-module")(type "KiCad")(uri "${KIPRJMOD}/../libraries/wheel-module.pretty")(options "")(descr "Project-local footprints: D4x7 electrolytic on the 2.54mm grid"))
 )
