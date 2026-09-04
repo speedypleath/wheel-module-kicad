@@ -16,6 +16,13 @@ packet, and exposes that packet to the Teensy 4.1 master over I2C. The module be
 as a self-contained tactile sense organ rather than a peer processor, matching the
 connector standard's design philosophy.
 
+![The Wheel Module encoder board, hand-wired on 2.54 mm protoboard](renders/wheel-module-built.jpg)
+
+*The module as actually built. Component side, left to right: `J2` (black 5-pin encoder
+header) and the pull-up/series resistors bottom left, `C2` (yellow disc) beside them,
+`U1` centre with `C1`'s electrolytic can at its USB end, `J1` (white XH2.54 to the hub)
+top right, and the `D1`/`D2` status LEDs bottom right.*
+
 ## The encoder interface, and why the pull-ups are there
 
 The encoder is an **E38S6G5-600B-G24N**: photoelectric incremental, 600 P/R, rated
@@ -158,6 +165,59 @@ guides call this out at the step where it matters.
 D1 and D2 match the PWR/LNK status cluster in the front panel drawing
 (`Notes/Haptic Console - Wheel Module Front Panel.md`).
 
+## Layouts and build guides
+
+One schematic, three board files. They share the netlist and nothing else — pick the one
+that matches how you are building.
+
+| Build | Board file | Build guide |
+|---|---|---|
+| Stripboard (Veroboard) | `project/haptic-console-wheel-module-stripboard.kicad_pcb` | [`docs/stripboard-wiring.md`](docs/stripboard-wiring.md), or the interactive [`docs/stripboard-wiring.html`](docs/stripboard-wiring.html) with a live board map |
+| Plain perfboard | `project/haptic-console-wheel-module-perfboard.kicad_pcb` | [`docs/perfboard-wiring.md`](docs/perfboard-wiring.md) |
+| Fabricated PCB | `project/haptic-console-wheel-module.kicad_pcb` | none needed — [Gerber set](project/haptic-console-wheel-module-gerbers.zip) |
+
+### Schematic
+
+![Schematic](renders/schematic-v2-1.png)
+
+Full page as [`renders/schematic-v2.pdf`](renders/schematic-v2.pdf). ERC report:
+[`docs/erc-report.txt`](docs/erc-report.txt); exported netlist:
+[`docs/netlist.net`](docs/netlist.net).
+
+### Stripboard (Veroboard)
+
+40 x 40 holes, 104.14 mm square — the full uncut board. The circuit lives in cols 1-28 /
+rows 1-28; the strips run the board's whole width regardless, which is why the audit
+matters more than the placement.
+
+| Component side | Solder side |
+|---|---|
+| ![Stripboard, component side](renders/stripboard-top.png) | ![Stripboard, solder side](renders/stripboard-bottom.png) |
+
+The solder-side view is the one to build from: white `X` marks are the 23 track cuts, and
+the coloured rods are the eight link wires, drawn to the control unit's colour convention
+(red power, blue GND, yellow I2C/IRQ, green `/LNK`). Cuts and links are listed
+step-by-step in [`docs/stripboard-wiring.md`](docs/stripboard-wiring.md).
+
+### Plain perfboard
+
+28 x 28 holes, 71.12 mm square, every connection a discrete wire.
+
+![Perfboard, component side](renders/perfboard-top.png)
+
+Wire-by-wire build order in [`docs/perfboard-wiring.md`](docs/perfboard-wiring.md).
+
+### Fabricated PCB
+
+68 x 58 mm, 2-layer, all through-hole.
+
+| Front (F.Cu) | Back (B.Cu) |
+|---|---|
+| ![Fabricated PCB, front](renders/fab-top.png) | ![Fabricated PCB, back](renders/fab-bottom.png) |
+
+The back is mostly the filled GND pour that all 14 GND pads tie into; only `/LNK` and the
+`+3V3` branch to `R7` are routed there.
+
 ## Status
 
 - Schematic: complete, **ERC 0 errors / 0 warnings**, netlist verified by parsing the
@@ -167,16 +227,13 @@ D1 and D2 match the PWR/LNK status cluster in the front panel drawing
   `600B` part is AB two-phase. `J2` pin 5 repurposed as shield. GP18 is now free.
 - Perfboard layout: **complete**, 28x28 holes on 2.54mm pitch (71.12 x 71.12 mm cut),
   **0 DRC errors / 9 cosmetic warnings**. Every pad verified on-grid with no shared
-  holes. Wire-by-wire build order in `docs/perfboard-wiring.md`, render in
-  `renders/perfboard-top.png`. The 32 unconnected pads DRC reports are expected -
+  holes. The 32 unconnected pads DRC reports are expected -
   the board is hand-wired and carries no copper traces.
 - Stripboard (Veroboard) layout: **complete**, 40x40 holes on 2.54mm pitch
   (104.14 mm square, the full uncut board), **0 DRC errors / 0 unconnected pads**.
   The circuit occupies cols 1-28 / rows 1-28; the rest is spare board, but the
   strips still run its full width. Continuous copper
-  strips, 23 track cuts, 11 link connections. Build guide in `docs/stripboard-wiring.md`
-  (and an interactive one, with a board map, at `docs/stripboard-wiring.html`),
-  renders in `renders/stripboard-top.png` and `-bottom.png`. Two cuts are
+  strips, 23 track cuts, 11 link connections. Two cuts are
   load-bearing: row 9 keeps **AGND** off the GND bus, and column 5 keeps `J1` pin 2
   (hub 3.3V) unconnected. Rows 4/14/19 are left uncut on purpose - they carry GND on
   both sides of the Pico and form the GND bus for free. The ~240 DRC warnings are
@@ -188,10 +245,7 @@ D1 and D2 match the PWR/LNK status cluster in the front panel drawing
 - Manufactured PCB layout: **complete**, 2-layer, 68 x 58 mm, all through-hole.
   **0 DRC errors, 0 shorts, 0 unconnected items** — every net is connected. 38 routed
   segments plus a filled GND pour on `B.Cu` (3270 mm² of copper), which all 14 GND pads
-  tie into directly, so GND needs no traces. Renders in `renders/fab-top.png` and
-  `renders/fab-bottom.png`; fabrication set in
-  `project/haptic-console-wheel-module-gerbers.zip`.
-  Two runs sit on the back layer because they would otherwise cross the J1 signal fan
+  tie into directly, so GND needs no traces. Two runs sit on the back layer because they would otherwise cross the J1 signal fan
   on the front: `/LNK` (U1.4 → R8.1) and the `+3V3` branch feeding R7, which goes round
   the bottom at y=56.5 rather than threading the 0.94 mm gaps between the Pico's pad
   rows. The front `+3V3` spine is offset to x=48.5 rather than running down the x=46.5
@@ -214,9 +268,13 @@ stock libraries and reports spurious violations.
 
 ## Related
 
-- `docs/perfboard-wiring.md` - hand-wiring guide for the plain-perfboard build
-- `docs/stripboard-wiring.md` - cut/link build guide for the Veroboard build
-- `scripts/layout.py` - the stripboard layout as data; source of truth for that board
+- [`docs/perfboard-wiring.md`](docs/perfboard-wiring.md) - hand-wiring guide for the
+  plain-perfboard build
+- [`docs/stripboard-wiring.md`](docs/stripboard-wiring.md) - cut/link build guide for the
+  Veroboard build, plus the interactive
+  [`docs/stripboard-wiring.html`](docs/stripboard-wiring.html)
+- [`scripts/layout.py`](scripts/layout.py) - the stripboard layout as data; source of
+  truth for that board
 - `../kicad-stripboard` - the shared engine that builds and audits strip board layouts
 - `../control-unit-kicad` - the Control Unit (M6) board, already fab-ready
 - Obsidian: `Notes/Haptic Console - Connector Standard.md`
