@@ -33,7 +33,7 @@ That gives the safety property this board relies on:
 - `R1`, `R2` (4.7k) pull `ENC_A_RAW` and `ENC_B_RAW` up to **+3V3**.
 - The Pico therefore sees a 0V to 3.3V swing regardless of whether the encoder is run
   from 5V or 12V.
-- `R4`, `R5` (220R) sit in series into the Pico GPIO as fault-current limiters,
+- `R4`, `R5` (330R) sit in series into the Pico GPIO as fault-current limiters,
   protecting the pin if a line is ever accidentally shorted to the encoder supply.
 
 4.7k is comfortable here. With ~2 m of encoder cable at roughly 120 pF/m plus pin and
@@ -109,6 +109,37 @@ a ground loop down the 2 m cable run.
 
 At 600 P/R with 4x quadrature decoding, one full handwheel turn is 2400 counts.
 
+## Why C1 is there, and why it is an electrolytic
+
+C1 is a **bulk reservoir**, not a decoupling capacitor, and the two jobs are
+different. C2 (100 nF on 3V3) is decoupling: it kills the nanosecond-scale current
+spikes from GPIO switching, and wants to be small and close to the pin. C1 sits on
+the 5 V rail at the connector entry and does the opposite job — it is a local charge
+store at the far end of the hub cable.
+
+The 5 V arrives over a metre or two of XH2.54 flying lead, perhaps 1 uH/m of
+inductance plus some milliohms. Every change in this board's load current has to be
+supplied through that inductance: the encoder's output transistors switching at
+2 x 3 kHz, the Pico's RT6150 buck-boost drawing pulsed input current, and above all
+**hot-plugging J2 with the encoder attached**. Without local bulk the rail at VSYS
+dips and rings instead of holding up. Steady-state draw is modest — encoder
+40-100 mA, Pico 25-30 mA, LEDs ~3 mA — so it is the transients that matter.
+
+100 nF will not do this job: it is 100x less charge. A 100 mA step lasting 300 ns
+gives dV = I*dt/C ~= 300 mV on 100 nF against ~3 mV on 10 uF, and it moves the
+cable-inductance resonance from ~50 kHz up to ~500 kHz where it is far less damped.
+
+**Electrolytic is the right part, not a compromise** — bulk capacitance is what
+aluminium electrolytics are for. The first revision specified a 10 uF ceramic only
+because `Device:CP` cached as a zero-pin stub during project creation and switching
+to the non-polarised `Device:C` sidestepped the question. (The real cause was
+simpler: KiCad 10 has no `Device:CP` at all; the symbol is `Device:C_Polarized`.)
+
+**C1 is now polarised, and nothing in ERC or DRC will catch it if you fit it
+backwards.** Pad 1 is **+** and goes to `+5V`; the lead beside the printed stripe is
+**-** and goes to `GND`. On a 5 V rail a reversed electrolytic will vent. Both build
+guides call this out at the step where it matters.
+
 ## Bill of materials
 
 | Ref | Value | Footprint |
@@ -117,9 +148,9 @@ At 600 P/R with 4x quadrature decoding, one full handwheel turn is 2400 counts.
 | J1 | XH2.54 6-pin console connector | Connector_JST:JST_XH_B6B-XH-A_1x06_P2.50mm_Vertical |
 | J2 | 5-pin encoder header | Connector_PinHeader_2.54mm:PinHeader_1x05_P2.54mm_Vertical |
 | R1, R2 | 4.7k pull-up to 3.3V | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
-| R4, R5 | 220R series protection | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
+| R4, R5 | 330R series protection | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
 | R7, R8 | 1k LED current limit | Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal |
-| C1 | 10uF bulk on 5V | Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm |
+| C1 | 10uF 25V bulk on 5V, **polarised** | wheel-module:CP_Radial_D4.0mm_P2.50mm |
 | C2 | 100nF decoupling on 3.3V | Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm |
 | D1 | PWR green 3mm | LED_THT:LED_D3.0mm |
 | D2 | LNK red 3mm | LED_THT:LED_D3.0mm |
@@ -139,14 +170,21 @@ D1 and D2 match the PWR/LNK status cluster in the front panel drawing
   holes. Wire-by-wire build order in `docs/perfboard-wiring.md`, render in
   `renders/perfboard-top.png`. The 32 unconnected pads DRC reports are expected -
   the board is hand-wired and carries no copper traces.
-- Stripboard (Veroboard) layout: **complete**, 28x30 holes on 2.54mm pitch
-  (73.66 x 78.74 mm cut), **0 DRC errors / 0 unconnected pads**. Continuous copper
-  strips, 23 track cuts, 12 link wires. Build guide in `docs/stripboard-wiring.md`,
+- Stripboard (Veroboard) layout: **complete**, 40x40 holes on 2.54mm pitch
+  (104.14 mm square, the full uncut board), **0 DRC errors / 0 unconnected pads**.
+  The circuit occupies cols 1-28 / rows 1-28; the rest is spare board, but the
+  strips still run its full width. Continuous copper
+  strips, 23 track cuts, 11 link connections. Build guide in `docs/stripboard-wiring.md`
+  (and an interactive one, with a board map, at `docs/stripboard-wiring.html`),
   renders in `renders/stripboard-top.png` and `-bottom.png`. Two cuts are
-  load-bearing: row 10 keeps **AGND** off the GND bus, and column 5 keeps `J1` pin 2
-  (hub 3.3V) unconnected. Rows 5/15/20 are left uncut on purpose - they carry GND on
+  load-bearing: row 9 keeps **AGND** off the GND bus, and column 5 keeps `J1` pin 2
+  (hub 3.3V) unconnected. Rows 4/14/19 are left uncut on purpose - they carry GND on
   both sides of the Pico and form the GND bus for free. The ~240 DRC warnings are
   expected: perfboard holes modelled as vias dangle by construction.
+  Generated from `scripts/layout.py` by the shared `~/KiCad/kicad-stripboard`
+  engine - rebuild it rather than editing the board.
+  The eight physical link wires are modelled as colour-coded 3D jumper wires on the
+  **solder** side, keeping the crowded component side clear.
 - Manufactured PCB layout: **complete**, 2-layer, 68 x 58 mm, all through-hole.
   **0 DRC errors, 0 shorts, 0 unconnected items** — every net is connected. 38 routed
   segments plus a filled GND pour on `B.Cu` (3270 mm² of copper), which all 14 GND pads
@@ -178,6 +216,8 @@ stock libraries and reports spurious violations.
 
 - `docs/perfboard-wiring.md` - hand-wiring guide for the plain-perfboard build
 - `docs/stripboard-wiring.md` - cut/link build guide for the Veroboard build
+- `scripts/layout.py` - the stripboard layout as data; source of truth for that board
+- `../kicad-stripboard` - the shared engine that builds and audits strip board layouts
 - `../control-unit-kicad` - the Control Unit (M6) board, already fab-ready
 - Obsidian: `Notes/Haptic Console - Connector Standard.md`
 - Obsidian: `concepts/haptic-console-wheel-module.md`

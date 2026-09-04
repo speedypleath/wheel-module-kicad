@@ -2,8 +2,8 @@
 	(version "E")
 	(design
 		(source "/Users/speedypleath/KiCad/wheel-module-kicad/project/haptic-console-wheel-module.kicad_sch")
-		(date "2026-08-27T19:38:09")
-		(tool "Eeschema 10.0.5")
+		(date "2026-09-03T21:16:09")
+		(tool "Eeschema 10.0.4")
 		(sheet
 			(number "1")
 			(name "/")
@@ -57,21 +57,27 @@
 		(comp
 			(ref "C1")
 			(value "10uF")
-			(footprint "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm")
+			(footprint "wheel-module:CP_Radial_D4.0mm_P2.50mm")
+			(description "Bulk reservoir on +5V. 10uF 25V radial aluminium electrolytic, D4x7mm, polarised: pin 1 = +.")
 			(fields
 				(field
-					(name "Footprint") "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm")
+					(name "Voltage") "25V")
+				(field
+					(name "Footprint") "wheel-module:CP_Radial_D4.0mm_P2.50mm")
 				(field
 					(name "Datasheet")
 				)
 				(field
-					(name "Description")
-				)
+					(name "Description") "Bulk reservoir on +5V. 10uF 25V radial aluminium electrolytic, D4x7mm, polarised: pin 1 = +.")
 			)
 			(libsource
 				(lib "Device")
-				(part "C")
-				(description "Unpolarized capacitor")
+				(part "C_Polarized")
+				(description "Polarized capacitor")
+			)
+			(property
+				(name "Voltage")
+				(value "25V")
 			)
 			(property
 				(name "Sheetname")
@@ -87,13 +93,13 @@
 			)
 			(property
 				(name "ki_fp_filters")
-				(value "C_*")
+				(value "CP_*")
 			)
 			(sheetpath
 				(names "/")
 				(tstamps "/")
 			)
-			(tstamps "57f8143e-2a12-47b8-9056-f45ae2ad0277")
+			(tstamps "3785d906-fbd5-4605-99c2-d270a6fa0b8d")
 			(units
 				(unit
 					(name "A")
@@ -509,7 +515,7 @@
 		)
 		(comp
 			(ref "R4")
-			(value "220R")
+			(value "330R")
 			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
 			(fields
 				(field
@@ -563,7 +569,7 @@
 		)
 		(comp
 			(ref "R5")
-			(value "220R")
+			(value "330R")
 			(footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
 			(fields
 				(field
@@ -1018,6 +1024,40 @@
 				)
 				(field
 					(name "Description") "Unpolarized capacitor")
+			)
+			(pins
+				(pin
+					(num "1")
+					(name "")
+					(type "passive")
+				)
+				(pin
+					(num "2")
+					(name "")
+					(type "passive")
+				)
+			)
+		)
+		(libpart
+			(lib "Device")
+			(part "C_Polarized")
+			(description "Polarized capacitor")
+			(footprints
+				(fp "CP_*")
+			)
+			(fields
+				(field
+					(name "Reference") "C")
+				(field
+					(name "Value") "C_Polarized")
+				(field
+					(name "Footprint")
+				)
+				(field
+					(name "Datasheet")
+				)
+				(field
+					(name "Description") "Polarized capacitor")
 			)
 			(pins
 				(pin

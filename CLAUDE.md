@@ -63,16 +63,26 @@ root = re.search(r'\(uuid "([0-9a-f-]+)"\)', open(sch).read()).group(1)
 pro['sheets'] = [[root, 'Root']]
 ```
 
-### 3. `Device:CP` caches as an empty stub with zero pins
+### 3. `Device:CP` caches as an empty stub with zero pins - because it does not exist
 
 `schematic_place_symbol` cached `Device:CP` (polarised capacitor) into `lib_symbols` as
 `(symbol "Device:CP" (in_bom yes) (on_board yes) (symbol "CP_0_1"))` - **no pins at
 all**. `schematic_get_pin_positions` returned an empty list, and the part would have
 vanished from the netlist. `Device:C` caches correctly.
 
-The cause is that `CP` is an `extends` symbol; the tool does not resolve inherited pins.
-**After placing any symbol, audit the cached pin count**, especially for `extends`
-symbols:
+**Corrected 2026-09-03: the `extends` explanation below was wrong.** KiCad 10's
+`Device.kicad_sym` has no `CP` symbol at all - the polarised capacitor is
+**`Device:C_Polarized`** (`grep '(symbol "C' Device.kicad_sym`). `schematic_place_symbol`
+does not fail on a name it cannot find; it writes a plausible-looking empty stub. So a
+zero-pin cache usually means **the lib_id is wrong**, not that inheritance broke.
+`Device:C_Polarized` caches correctly with both pins and is pin-identical to `Device:C`
+(2 passive pins at `(0, +/-3.81)`, not an `extends` symbol), so it is a drop-in swap:
+C1 was moved to it on 2026-09-03 with the wires, ERC and netlist all unchanged.
+
+**After placing any symbol, audit the cached pin count.** Note the audit snippet below
+must **bound the `lib_symbols` block** by paren-matching first - run it over the whole
+file and the last cached symbol absorbs every `(pin "1" (uuid ...))` in the instance
+bodies below it and reports a nonsense count (47 for a 2-pin capacitor):
 
 ```python
 starts=[(m.start(),m.group(1)) for m in re.finditer(r'\(symbol "([A-Za-z_0-9]+:[^"]+)"',src)]
@@ -81,8 +91,11 @@ for i,(pos,name) in enumerate(starts):
     print(name, src[pos:end].count('(pin '))
 ```
 
-Here C1 was re-placed as `Device:C` (10uF ceramic is fine for bulk decoupling and avoids
-the polarity question entirely).
+At the time C1 was re-placed as `Device:C` (a 10uF ceramic, which avoided the polarity
+question entirely). **Superseded 2026-09-03:** the owner's actual part is a 10uF 25V
+D4x7 aluminium electrolytic, so C1 is now `Device:C_Polarized` with a `Voltage` field of
+`25V`. Pin 1 was already `+5V` and pin 2 `GND` on all three boards, which is exactly the
+polarised convention, so nothing had to be rotated or re-netted.
 
 ## ERC gotchas specific to the Pico symbol
 
@@ -100,8 +113,15 @@ Pico pin 36 is a genuine `power_out`.
 
 ## Library setup
 
-All symbols and footprints are **stock KiCad 10**. Nothing custom is vendored, so
-`libraries/` is currently empty.
+All **symbols** are stock KiCad 10. One **footprint** is vendored, as of 2026-09-03:
+`libraries/wheel-module.pretty/CP_Radial_D4.0mm_P2.50mm.kicad_mod`, registered in
+`project/fp-lib-table` as the `wheel-module` library via `${KIPRJMOD}/../libraries/`.
+It is C1's D4x7 electrolytic, and it exists because **no stock `CP_Radial` pairs a 4 mm
+can with a 2.50 mm pitch** - and 2.50 is the only pitch that keeps pads on the 2.54 mm
+grid (2.00 would sit 0.54 mm off a hole, versus 0.04 mm for 2.50). It is generated, not
+hand-written: derived from the stock `CP_Radial_D4.0mm_P2.00mm` by pushing pad 2 out to
+2.5 mm and translating the can +0.25 mm so it stays centred between the leads. See the
+footprint-derivation trap in the stripboard section before regenerating it.
 
 Note that `Connector_JST.kicad_sym` does **not** exist in this KiCad 10 install; only
 the footprint library `Connector_JST.pretty` does. The XH connector therefore uses the
@@ -211,10 +231,59 @@ x>=46.5.
 
 ## Stripboard / Veroboard layout (2026-08-28 session)
 
-`project/haptic-console-wheel-module-stripboard.kicad_pcb`, 28 x 30 holes,
-73.66 x 78.74 mm. A **third** build, separate from both the fabricated board and the
+`project/haptic-console-wheel-module-stripboard.kicad_pcb`, 40 x 40 holes,
+104.14 mm square. A **third** build, separate from both the fabricated board and the
 plain-perfboard one, for continuous-strip Veroboard. Build guide:
-`docs/stripboard-wiring.md`. Strips run horizontally on `B.Cu`, link wires on `F.Cu`.
+`docs/stripboard-wiring.md`, plus an interactive `docs/stripboard-wiring.html`.
+Strips run horizontally on `B.Cu`, link wires on `F.Cu`.
+
+**The grid is the stock, not the circuit.** It was resized from 28 x 30 to the real
+40 x 40 board on 2026-08-30. Placement did not move - the circuit still sits in
+cols 1-28 / rows 1-29 - but every strip now runs the full 40 columns, so the
+right-hand end of a row is the same node as the part the circuit uses. Widening the
+grid is therefore not cosmetic: it extends live copper past the last part. It was
+safe here only because nothing else sits out there. Re-run the audit after any
+resize; it is what proves no segment picked up a second net.
+
+**The board is generated, not hand-built - rebuild it, don't patch it.**
+`scripts/layout.py` is the source of truth (pure data, no `pcbnew`); the engine that
+turns it into copper lives in the shared **`~/KiCad/kicad-stripboard`** repo, alongside
+`jumper-wires-kicad`. To regenerate from the perfboard seed:
+
+```bash
+~/KiCad/kicad-stripboard/build.py scripts/layout.py \
+    project/haptic-console-wheel-module-stripboard.kicad_pcb \
+    --from project/haptic-console-wheel-module-perfboard.kicad_pcb
+```
+
+That reproduces the committed board exactly (same file size, zero diff once sorted -
+only KiCad's internal emission order and UUIDs differ). The four stages run as separate
+processes, and the last one is the strip audit, which fails the build. Every pcbnew
+trap below is handled inside the engine; read `stripboard/kicad.py` before working
+around any of them again.
+
+**The HTML build guide is generated too.** `scripts/wiring_guide.py` renders
+`docs/stripboard-wiring.html` from `scripts/layout.py` plus a read-back of the built
+board - the strip table comes from the engine's own audit output and the placement
+cards from a `pcbnew` pad dump, so the page cannot state a net the copper does not
+carry. Re-run `python3 scripts/wiring_guide.py` after any rebuild. The Markdown
+guide beside it is still hand-maintained; keep the two in step.
+
+**The board map must draw each part's `*.Fab` body, never its courtyard.** It drew
+the courtyard until 2026-08-30, and on the Pico that runs ~1.5 mm proud at each end -
+enough to cover the whole neighbouring strip. The map showed the module sitting on
+the `+5V` rail when in reality the body clears it by 0.42 mm, and the owner asked for
+a layout change on the strength of it. A drawing that overstates a part's extent is
+worse than no drawing. Two sub-traps in reading `*.Fab`: it also carries a `REF**`
+`PCB_TEXT` (filter to `PCB_SHAPE`), and the Pico's USB shell is a `Polygon` there
+that overhangs the module's top edge by 1.3 mm - skip polygons, they mark features,
+not the outline, and that shell rides 8.5 mm up on the socket headers anyway.
+
+**`PCB_SHAPE.GetBoundingBox()` returns a temporary you must not keep.** Holding one
+and `Merge()`-ing the others into it returned a box at `x = -156.685` with zero
+extent. Same SWIG lifetime family as the `FindNet` and post-`Remove()` flakiness
+below. Read `GetLeft()/GetTop()/...` into plain ints inside the loop and min/max
+those instead.
 
 **The rule that drives the whole layout: a strip is shared by every hole in its
 row, including holes under pins nobody wired.** The question is never "did I connect
@@ -235,9 +304,18 @@ isolates it.
 **Derive every strip's net from the pads on it, never from intent** - and treat a
 segment carrying two nets as a hard error that aborts the write. That check is what
 makes this layout trustworthy; it caught a stale-placement run immediately.
-**Corollary: a rail with no pads on it cannot infer a net.** Row 2 (+5V) is reached
-only by link wires, so it silently landed on net 0 and every link touching it read as
-a short. Rails like that need an explicit net override.
+**Corollary: a rail with no pads on it cannot infer a net.** The old `+5V` rail was
+reached only by link wires, so it silently landed on net 0 and every link touching it
+read as a short; it needed an explicit `row_force_net` override. That rail is gone as
+of 2026-08-30 and the override with it, but keep the rule in mind before adding one.
+
+**`+5V` cannot have a full-width rail at all, and this is structural.** A strip that
+spans the Pico is only safe on a row whose two pins are the same net, and the only
+such rows are the three GND ones. So `+5V` lives on the right-hand segment of the
+VSYS row (row 3), where `U1.39` and `C1.1` already sit and the net infers itself, and
+the hub's 5 V is carried over the top of the module from `J1.3` by one long link.
+That row's *left* segment carries Pico pin 2, GPIO1 - it must stay cut at column 12,
+or 5 V lands on a GPIO.
 
 **Do not put a via at a cut hole.** A spot-faced hole has no copper. A 2.54 mm gap
 minus the 0.95 mm end cap on each strip leaves only 0.32 mm either side of a 1.5 mm
@@ -249,6 +327,58 @@ it passes. Travelling *along* a strip's own row is fine - same net.
 
 **Skip grid vias inside footprint courtyards**, or every hole under a component body
 trips `pth_inside_courtyard`. They are hidden under the part anyway.
+
+**The link wires are also drawn as physical jumper wires, on the SOLDER side.**
+The `wires` stage places one decorative `JumperWires` footprint per link - no pads,
+no net, so DRC is unaffected (still 0 errors, still exactly 240 warnings). Colours
+follow the control unit's convention so a net is the same colour on every board:
+red power, blue GND (the kit has no black), yellow I2C/IRQ, green `/LNK`.
+
+They run on the **back** (`wire_side="back"`) because the component side is crowded -
+the Pico spans twenty rows and `J1`/`J2`/the LEDs sit on the edges the long links
+follow, so front-side wires lay across component bodies. This inverts the build
+order: links go on **after** the parts, not before.
+
+A wire is drawn straight between a link's **first and last** waypoint; the gutter
+waypoints in between are a copper-routing device only, and an insulated wire may
+pass over anything. The three GND spine taps carry `wire=False` - they are solder
+joints on one continuous run, not wires of their own, which is why the file has 11
+links but 8 wires. `${JUMPER_WIRES_LIB}` must be configured (Preferences > Configure
+Paths) or the models silently fail to resolve.
+
+**Swapping a footprint: take the library's text placement, not the old part's.**
+Carrying the old reference/value positions across a swap put C1's `C1` label on the new
+part's round silk outline and produced **34 `silk_overlap` errors** on the fabricated
+board (which grades silk as an error via a local override). Read the replacement's own
+`(property "Reference" (at ...))` offset out of the `.kicad_mod` and apply it relative to
+the footprint origin.
+
+**Deriving a footprint: the pads and the silk clearance notch move independently.**
+`CP_Radial_D4.0mm_P2.50mm` was made from the stock `..._P2.00mm` by translating the body
++0.25 mm (keeping the can centred between the leads) and moving pad 2 +0.50 mm. But the
+stock silk has a **notch cut around pad 2**, and that notch travelled with the body, so
+it ended up 0.25 mm out of register and the hatching clipped the pad - 2
+`silk_over_copper` apiece on the fab board and the stripboard. The generator now re-cuts
+the notch around pad 2's final position (segment-to-point distance < pad radius +
+0.25 mm, collected before any `Remove()`). Regenerate with
+`scratchpad/mkfp.py`-style code rather than editing the `.kicad_mod`.
+
+**An accurate body is worth drawing - the courtyard is load-bearing.** C1 was first
+modelled with the stock 5 mm can as a stand-in. Its 5.4 mm courtyard overlapped U1 by
+0.32 mm and swallowed the col-19 hole where the `+5V` link lands, which made the engine
+skip that via and orphan the link (1 DRC error + 1 unconnected). That pushed C1 from
+col 18 to col 21 - a layout change made entirely to accommodate a part 1 mm bigger than
+the real one. The true D4 can has a 4.59 mm courtyard, clears U1 by 0.18 mm, and sits at
+col 18 beside the Pico's VSYS pin where a bulk cap belongs. Same lesson as the `*.Fab`
+board-map trap above: **a drawing that overstates a part's extent causes real, wrong
+layout decisions.**
+
+**Project-local footprint libraries need `footprint_libs`.** The engine resolved every
+footprint as `{footprint_lib}/{libname}.pretty`, i.e. all under one stock root, so a
+`wheel-module:` library was unloadable. `BoardSpec` now takes
+`footprint_libs={libname: /abs/path.pretty}`, consulted by `spec.resolve_lib()` before
+the root. That is a change to the **shared** `~/KiCad/kicad-stripboard` repo; it is
+backwards compatible (empty dict = old behaviour) but the other board projects share it.
 
 ### pcbnew traps hit this session
 
@@ -267,6 +397,22 @@ strips run under the module by construction, and pointless here since this is a
 non-W Pico with no radio). **Disable the rule area instead**:
 `SetDoNotAllowTracks(False)` and friends. It leaves the zone in place as
 documentation and saves correctly.
+
+**The module-level footprint-library wrappers are dead here.** `pcbnew.FootprintSave`
+and `pcbnew.FootprintLibCreate` both dereference a module-global `plug` that is `None`
+(`AttributeError: 'NoneType' object has no attribute 'FootprintSave'`) - the same SWIG
+plugin flakiness as `FindNet`. Get a real one with
+`pcbnew.PCB_IO_MGR.FindPlugin(pcbnew.PCB_IO_MGR.KICAD_SEXP)`, which has a working
+`FootprintSave`. Its `CreateLibrary` is **not** exposed to Python (and the SWIG
+`FootprintLibCreate` shim just calls it), but a `.pretty` is only a directory of
+`.kicad_mod` files - `os.makedirs` it yourself, then `io.FootprintSave(dir, fp)`.
+Note also `FOOTPRINT.SetDescription` does not exist; it is `SetLibDescription`.
+
+**A stage that mutates the board segfaults on exit, after saving successfully.**
+pcbnew's SWIG objects have no destructors (`no destructor found` on stderr), and
+CPython's interpreter teardown then crashes - exit status -11 on a build whose
+`SaveBoard` had already worked. Leave with `os._exit(rc)` after flushing, or every
+successful build reports failure.
 
 **The stackup API is not usable from Python here.** `GetStackupDescriptor()` returns
 a bare `SwigPyObject` with no `GetCount`, and there is no `Cast_to_BOARD_STACKUP`.
@@ -297,7 +443,7 @@ through `pcbnew`. If they go missing again, re-add at **user** scope
       around J1, J2, R1-R3 and the LEDs. Same issue on the perfboard silkscreen
       (D2's reference sits under J1's outline) - three `silk_overlap` warnings.
 - [x] ~~Perfboard hole grid / render trick~~ - done 2026-08-28 for the **stripboard**
-      build (571 grid holes, netted to the strip they sit on). The plain-perfboard
+      build (1331 grid holes at 40 x 40, netted to the strip they sit on). The plain-perfboard
       file still has no hole grid; add it the same way if that render is needed.
 - [ ] Tan Veroboard stackup on the stripboard render: blocked from Python (see the
       stripboard section). Do it in the GUI - Board Setup > Physical Stackup,

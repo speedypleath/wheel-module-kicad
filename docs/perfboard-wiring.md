@@ -26,12 +26,16 @@ This matches the orientation of `renders/perfboard-top.png` — view from the
 | J1 console XH6 | col 2, rows 6–11 | pin 1 (GND) at top |
 | J2 encoder 1x05 | col 25, rows 20–24 | **pin 1 at the bottom** (row 24), footprint is rotated 180° |
 | R1, R2 | rows 26 and 19 | 4.7k pull-ups to +3V3 |
-| R4, R5 | rows 23 and 21 | 220R series protection |
+| R4, R5 | rows 23 and 21 | 330R series protection |
 | R7, R8 | rows 15 and 13, cols 3–7 | 1k LED limiters, rotated 180° |
 | D1, D2 | cols 1–2, rows 15 and 13 | pad 1 = cathode = GND |
-| C1, C2 | cols 18–20, rows 5 and 8 | bulk and decoupling |
+| C1, C2 | C1 cols 18–19 row 5, C2 cols 18–20 row 8 | bulk (polarised) and decoupling |
 
 Resistors sit two rows apart so the axial bodies never touch.
+
+**C1 is polarised** — a 10 µF 25 V D4x7 electrolytic. Pad 1 is **+** and goes to (18,5)
+on `+5V`; the striped **−** lead goes to (19,5) on `GND`. It spans two holes rather
+than three because the electrolytic's leads are 2.5 mm apart, not 5 mm.
 
 ## Nets
 
@@ -47,7 +51,7 @@ Resistors sit two rows apart so the axial bodies never touch.
 | `/LNK` | **U1.4** (9,7) — **R8.1** (7,13) |
 | `/SCL` | **J1.5** (2,10) — **U1.7** (9,10) |
 | `/SDA` | **J1.4** (2,9) — **U1.6** (9,9) |
-| `GND` | **C1.2** (20,5) — **J1.1** (2,6) — **U1.3** (9,6) — **U1.38** (16,6) — **C2.2** (20,8) — **U1.8** (9,11) — **D2.1** (1,13) — **D1.1** (1,15) — **U1.13** (9,16) — **U1.28** (16,16) — **J2.5** (25,20) — **U1.18** (9,21) — **U1.23** (16,21) — **J2.2** (25,23) |
+| `GND` | **C1.2** (19,5) — **J1.1** (2,6) — **U1.3** (9,6) — **U1.38** (16,6) — **C2.2** (20,8) — **U1.8** (9,11) — **D2.1** (1,13) — **D1.1** (1,15) — **U1.13** (9,16) — **U1.28** (16,16) — **J2.5** (25,20) — **U1.18** (9,21) — **U1.23** (16,21) — **J2.2** (25,23) |
 | `Net-(D1-A)` | **D1.2** (2,15) — **R7.2** (3,15) |
 | `Net-(D2-A)` | **D2.2** (2,13) — **R8.2** (3,13) |
 
@@ -133,7 +137,7 @@ has no copper traces by design. Connectivity lives in the wire list above.
 | Ref | Pad | Col | Row | Net |
 |---|---|---|---|---|
 | C1 | 1 | 18 | 5 | `+5V` |
-| C1 | 2 | 20 | 5 | `GND` |
+| C1 | 2 | 19 | 5 | `GND` |
 | C2 | 1 | 18 | 8 | `+3V3` |
 | C2 | 2 | 20 | 8 | `GND` |
 | D1 | 1 | 1 | 15 | `GND` |
