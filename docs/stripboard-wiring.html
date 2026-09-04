@@ -214,7 +214,7 @@ details.notes li { margin-bottom:.4rem; }
 </style>
 </head>
 <body>
-<div class="toolbar"><div class="toolbar-in"><nav><a href="#map">Map</a><a href="#cuts">Cuts</a><a href="#strips">Strips</a><a href="#parts">Parts</a><a href="#wires">Wires</a><a href="#build">Build</a><a href="#verify">Verified</a></nav><span class="grow"></span><input id="q" type="search" placeholder="filter rows…" aria-label="Filter table rows"><span class="progress"><span class="bar"><i id="pbar"></i></span><span id="pnum">0/0</span></span><button class="btn" id="reset" type="button">Reset</button></div></div>
+<div class="toolbar"><div class="toolbar-in"><nav><a href="#map">Map</a><a href="#cuts">Cuts</a><a href="#strips">Strips</a><a href="#parts">Parts</a><a href="#wires">Wires</a><a href="#encoder">Encoder (J2)</a><a href="#build">Build</a><a href="#verify">Verified</a></nav><span class="grow"></span><input id="q" type="search" placeholder="filter rows…" aria-label="Filter table rows"><span class="progress"><span class="bar"><i id="pbar"></i></span><span id="pnum">0/0</span></span><button class="btn" id="reset" type="button">Reset</button></div></div>
 <div class="wrap"><header class="page-head"><span class="eyebrow">Haptic Console &middot; Wheel Module (M3) &middot; Veroboard build</span><h1>Stripboard Wiring Guide</h1><p class="dek">Bench reference for the encoder sensor board on continuous-strip Veroboard. Every net, cut and column below is read back out of the built <code>.kicad_pcb</code>, not from intent &mdash; if this page and the board disagree, the board is right.</p></header>
 <div class="stats"><div class="stat"><b>40&times;40</b><span>holes</span></div><div class="stat"><b>104.14</b><span>mm square</span></div><div class="stat"><b>23</b><span>cuts</span></div><div class="stat"><b>13</b><span>parts</span></div><div class="stat"><b>8</b><span>link wires</span></div><div class="stat"><b>63</b><span>strip segments</span></div><div class="stat"><b>1,331</b><span>holes drilled</span></div></div>
 <div class="callout warn"><p><strong>Read this first: a strip is shared by every hole in its row.</strong> On plain perfboard a hole connects to nothing. Here it connects to the whole row, so a pin you never wired still shorts to whatever else sits on its strip. The question is never &ldquo;did I connect the right pads&rdquo; but &ldquo;does anything else sit on this strip&rdquo;.</p><p><b>Row 10 must be cut at column 12.</b> Pico pin&nbsp;8 (GND) is on the left of that row and pin&nbsp;33 (<b>AGND</b>) on the right. AGND is a deliberate no-connect; tying it to GND recreates a <code>power_out</code>/<code>power_out</code> ERC violation and breaks a design invariant.</p><p><b>Rows 5, 15 and 20 are deliberately NOT cut.</b> They carry GND on <i>both</i> sides of the Pico (pins 3/38, 13/28, 18/23), so leaving them whole buys six GND connections and the GND bus for free. Getting this backwards costs either a short or a dozen needless wires.</p></div>
@@ -536,6 +536,58 @@ details.notes li { margin-bottom:.4rem; }
 <tr data-net="GND" data-cls="gnd" data-search="wire 8 GND blue"><td class="n">8</td><td class="net gnd">GND</td><td class="n"><i class="sw sw-blue" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i>blue</td><td class="n">(28,&thinsp;24)</td><td class="n">(28,&thinsp;26)</td><td><code>J2.5</code> cable shield to GND.</td></tr>
 </tbody></table></div>
 <div class="callout"><p><b>Wire 7 is one length soldered at five holes</b> &mdash; rows 5, 10, 15, 20 and 27. Those three intermediate joints are what tie the Pico's GND rows into one bus; skip any of them and that row floats. The board file models them as three extra zero-length links, which is why the netlist counts twelve links and this table nine wires. They show on the map as dashed stubs.</p></div></section>
+<section id="encoder"><h2>Optical encoder (J2) &amp; console (J1) wiring</h2>
+<p class="section-intro">Exact pin-to-wire mapping, physical orientation, and pre-flight verification for connecting the <b>E38S6G5-600B-G24N</b> optical rotary encoder to header <code>J2</code>, and the console bus harness to header <code>J1</code>.</p>
+
+<h3>Optical Encoder Pinout (J2 — 5-Pin Header)</h3>
+<div class="tbl-frame"><table><thead><tr><th class="n">J2 Pin</th><th class="n">Stripboard Position (Col, Row)</th><th>Board Net</th><th class="n">Encoder Wire</th><th>Function &amp; Signal Path</th></tr></thead><tbody>
+<tr data-search="J2 pin 1 row 25 +5V red encoder power"><td class="n"><b>Pin 1</b></td><td class="n">(28, 25) <span class="tag">Bottom</span></td><td class="net power">+5V</td><td class="n"><i class="sw sw-red" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i><b>Red</b></td><td>Encoder DC power supply (+5V)</td></tr>
+<tr data-search="J2 pin 2 row 24 GND black encoder ground"><td class="n"><b>Pin 2</b></td><td class="n">(28, 24)</td><td class="net gnd">GND</td><td class="n"><i class="sw sw-gnd" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i><b>Black</b></td><td>Encoder power ground (0V)</td></tr>
+<tr data-search="J2 pin 3 row 23 /ENC_A_RAW white channel A"><td class="n"><b>Pin 3</b></td><td class="n">(28, 23)</td><td class="net signal">/ENC_A_RAW</td><td class="n"><i class="sw" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px;background:#ffffff;border:1px solid var(--border)"></i><b>White</b></td><td>Phase A output &rarr; pulled up to +3.3V via <code>R1</code> (4.7k&Omega;), into Pico <code>GP16</code> via <code>R4</code> (330&Omega;)</td></tr>
+<tr data-search="J2 pin 4 row 22 /ENC_B_RAW green channel B"><td class="n"><b>Pin 4</b></td><td class="n">(28, 22)</td><td class="net signal">/ENC_B_RAW</td><td class="n"><i class="sw sw-green" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i><b>Green</b></td><td>Phase B output &rarr; pulled up to +3.3V via <code>R2</code> (4.7k&Omega;), into Pico <code>GP17</code> via <code>R5</code> (330&Omega;)</td></tr>
+<tr data-search="J2 pin 5 row 21 GND bare braid shield"><td class="n"><b>Pin 5</b></td><td class="n">(28, 21) <span class="tag">Top</span></td><td class="net gnd">GND</td><td class="n"><i class="sw sw-gnd" style="display:inline-block;width:.62rem;height:.62rem;border-radius:2px;margin-right:.35rem;vertical-align:-1px"></i><b>Bare / Braid</b></td><td>Cable shield drain &mdash; single-point drain to board GND</td></tr>
+</tbody></table></div>
+
+<div class="callout"><p><b>Physical Header Orientation on Stripboard:</b><br>
+Viewed from the <b>component side</b>, with the Pico USB pointing <b>UP</b> at the top edge:</p>
+<pre style="font-family:ui-monospace, monospace; font-size:.82rem; line-height:1.45; background:var(--surface-2); padding:.8rem 1.1rem; border-radius:6px; overflow-x:auto; margin:.5rem 0">
+               [ Pico USB Top ]
+  
+  (Col 28, Row 21)  [ Pin 5 ]  &lt;--- BARE BRAID (Cable Shield)
+  (Col 28, Row 22)  [ Pin 4 ]  &lt;--- GREEN      (Phase B)
+  (Col 28, Row 23)  [ Pin 3 ]  &lt;--- WHITE      (Phase A)
+  (Col 28, Row 24)  [ Pin 2 ]  &lt;--- BLACK      (Ground 0V)
+  (Col 28, Row 25)  [ Pin 1 ]  &lt;--- RED        (+5V Power)
+  
+              [ Bottom Edge ]</pre>
+<p><strong>Note:</strong> On the physical stripboard layout, <b>Pin 1 is at the bottom (Row 25)</b> and <b>Pin 5 is at the top (Row 21)</b>.</p>
+</div>
+
+<div class="callout warn"><p><strong>Wiring &amp; Interface Notes:</strong></p>
+<ul style="margin:.4rem 0 0; padding-left:1.2rem">
+<li><b>Shield drain (Pin 5):</b> The bare wire / braided shield is grounded <i>only at this board end</i> to prevent ground loops along the ~2&nbsp;m cable run.</li>
+<li><b>Open-Collector Logic:</b> The encoder outputs only sink current to ground. The board's 4.7&nbsp;k&Omega; pull-up resistors (<code>R1</code>, <code>R2</code>) pull the signals to the Pico's +3.3&nbsp;V rail, safely conditioning 5V-powered encoder signals for the Pico's 3.3V GPIOs.</li>
+<li><b>Pre-Flight Voltage Check:</b> Before plugging the encoder in, power the board and measure with a multimeter:
+  <ul style="margin:.2rem 0; padding-left:1.1rem">
+    <li>Across <b>Pin 1 (Red)</b> and <b>Pin 2 (Black)</b>: verify <b>+5.0&nbsp;V</b>.</li>
+    <li>Across <b>Pin 3 (White)</b> / <b>Pin 4 (Green)</b> to <b>GND</b>: verify clean <b>+3.3&nbsp;V</b> pull-up.</li>
+  </ul>
+</li>
+</ul>
+</div>
+
+<h3 style="margin-top:2rem">Console Bus Interface (J1 — XH2.54 6-Pin Connector)</h3>
+<p class="section-intro">Left edge connector connecting the module to the central console / Teensy master I&sup2;C bus.</p>
+
+<div class="tbl-frame"><table><thead><tr><th class="n">J1 Pin</th><th class="n">Position (Col, Row)</th><th>Net</th><th>Function &amp; Connection</th></tr></thead><tbody>
+<tr data-search="J1 pin 1 row 4 GND console ground"><td class="n"><b>Pin 1</b></td><td class="n">(2, 4) <span class="tag">Top</span></td><td class="net gnd">GND</td><td>Common system ground rail (Row 4 uncut GND bus)</td></tr>
+<tr class="isolate" data-search="J1 pin 2 row 5 NC 3V3 isolated"><td class="n"><b>Pin 2</b></td><td class="n">(2, 5)</td><td class="net free">NC (Isolated)</td><td>Console 3.3V supply line &mdash; <span class="tag">must stay isolated</span> (Pico generates its own 3.3V on Pin 36)</td></tr>
+<tr data-search="J1 pin 3 row 6 +5V console power"><td class="n"><b>Pin 3</b></td><td class="n">(2, 6)</td><td class="net power">+5V</td><td>Console 5V DC power input &rarr; feeds Pico VSYS (Pin 39) via wire 1</td></tr>
+<tr data-search="J1 pin 4 row 7 /SDA I2C data"><td class="n"><b>Pin 4</b></td><td class="n">(2, 7)</td><td class="net i2c">/SDA</td><td>I&sup2;C Data &rarr; Pico GP4 (Pin 6)</td></tr>
+<tr data-search="J1 pin 5 row 8 /SCL I2C clock"><td class="n"><b>Pin 5</b></td><td class="n">(2, 8)</td><td class="net i2c">/SCL</td><td>I&sup2;C Clock &rarr; Pico GP5 (Pin 7)</td></tr>
+<tr data-search="J1 pin 6 row 9 /IRQ interrupt"><td class="n"><b>Pin 6</b></td><td class="n">(2, 9) <span class="tag">Bottom</span></td><td class="net i2c">/IRQ</td><td>Module interrupt request line &rarr; Pico GP6 (Pin 9) via wire 2</td></tr>
+</tbody></table></div>
+</section>
 <section id="build"><h2>Build order</h2><p class="section-intro">The link wires go on the <i>solder</i> side, which inverts the usual perfboard order: wires last, after the parts, not before them.</p><ol class="steps">
 <li data-search="Make all 23 cuts, before any part goes in"><input type="checkbox" data-k="step-1" aria-label="Make all 23 cuts, before any part goes in"><span class="step-body"><strong>Make all 23 cuts, before any part goes in</strong><span>Spot-face cutter or a 3&nbsp;mm drill twisted by hand, from the copper side. Meter every one across the gap &mdash; a partial cut is the hardest fault to find later.</span></span></li>
 <li data-search="Fit the Pico on female headers, not soldered down"><input type="checkbox" data-k="step-2" aria-label="Fit the Pico on female headers, not soldered down"><span class="step-body"><strong>Fit the Pico on female headers, not soldered down</strong><span>Two GND strips and the whole cut column run underneath it.</span></span></li>

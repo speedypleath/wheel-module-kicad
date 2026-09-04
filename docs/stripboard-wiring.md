@@ -210,6 +210,48 @@ three are insulated, so let 1 lie over them.
 Wire 8 passes directly over `J2` pin 1, where wire 3 lands. Both are insulated —
 let 8 lie over 3 rather than trying to dodge it.
 
+## Optical Encoder (J2) & Console (J1) External Wiring
+
+### Optical Encoder Wiring (`J2` — 5-Pin Header)
+
+Target Encoder: **E38S6G5-600B-G24N** (NPN open-collector, 600 P/R).
+
+| `J2` Pin | Stripboard Position (Col, Row) | Board Net | Encoder Wire Color | Function / Signal Path |
+|---|---|---|---|---|
+| **Pin 1** | **(28, 25)** *(Bottom)* | `+5V` | **Red** | Encoder DC Power Supply (+5V) |
+| **Pin 2** | **(28, 24)** | `GND` | **Black** | Encoder Power Ground (0V) |
+| **Pin 3** | **(28, 23)** | `/ENC_A_RAW` | **White** | Phase A &rarr; pull-up `R1` (4.7k) &rarr; `R4` (330R) &rarr; Pico `GP16` |
+| **Pin 4** | **(28, 22)** | `/ENC_B_RAW` | **Green** | Phase B &rarr; pull-up `R2` (4.7k) &rarr; `R5` (330R) &rarr; Pico `GP17` |
+| **Pin 5** | **(28, 21)** *(Top)* | `GND` (Shield) | **Bare / Braid** | Cable shield drain (single-point to board GND) |
+
+#### Physical Header Orientation (Component Side, Pico USB UP):
+```text
+               [ Pico USB Top ]
+  
+  (Col 28, Row 21)  [ Pin 5 ]  <--- BARE BRAID (Cable Shield)
+  (Col 28, Row 22)  [ Pin 4 ]  <--- GREEN      (Phase B)
+  (Col 28, Row 23)  [ Pin 3 ]  <--- WHITE      (Phase A)
+  (Col 28, Row 24)  [ Pin 2 ]  <--- BLACK      (Ground 0V)
+  (Col 28, Row 25)  [ Pin 1 ]  <--- RED        (+5V Power)
+  
+              [ Bottom Edge ]
+```
+
+- **Shield Ground:** Terminate shield braid to Pin 5 *at this board end only* to prevent ground loops along the 2 m cable.
+- **Open-Collector Logic:** Encoder outputs pull to GND; board pull-ups (`R1`, `R2`) pull up to +3.3V, ensuring Pico GPIO safety.
+- **Pre-Flight DMM Checks:** Power board, measure Pin 1 &rarr; Pin 2 (+5.0V) and Pins 3/4 &rarr; GND (+3.3V) before plugging encoder in.
+
+### Console Harness Wiring (`J1` — XH2.54 6-Pin Connector)
+
+| `J1` Pin | Position (Col, Row) | Net | Function |
+|---|---|---|---|
+| **Pin 1** | **(2, 4)** *(Top)* | `GND` | Common system ground (Row 4 GND bus) |
+| **Pin 2** | **(2, 5)** | `NC (Isolated)` | Console 3.3V &mdash; **must stay isolated** |
+| **Pin 3** | **(2, 6)** | `+5V` | Console 5V DC power in &rarr; Pico VSYS |
+| **Pin 4** | **(2, 7)** | `/SDA` | I²C Data &rarr; Pico `GP4` |
+| **Pin 5** | **(2, 8)** | `/SCL` | I²C Clock &rarr; Pico `GP5` |
+| **Pin 6** | **(2, 9)** *(Bottom)* | `/IRQ` | Interrupt line &rarr; Pico `GP6` |
+
 ## Build order
 
 1. **Make all 23 cuts first**, before any part goes in. Check each one for
